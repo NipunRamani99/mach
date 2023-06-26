@@ -11,5 +11,9 @@ public:
 	void hello() {
 		std::cout << "Hello World!\n";
 	}
+
+	void hello2() {
+		std::cout << "Hello World2!\n";
+	}
 };
 #endif

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.9)
 
 project(Sanbox)
 
-set(Engine_DIR "C:/dissertation/mach/engine/out/install/x64-Debug/lib/cmake/Engine")
+set(Engine_DIR "./../engine/out/install/x64-Debug/lib/cmake/Engine")
 find_package(Engine)
 # Add the source files
 file(GLOB SOURCE_FILES
