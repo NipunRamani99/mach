@@ -3,17 +3,11 @@
 #include <iostream>
 class Hello {
 public:
-	Hello() {
-		std::cout << "Initialized Hello Class \n";
-	}
+	Hello();
 	~Hello() {}
 
-	void hello() {
-		std::cout << "Hello World!\n";
-	}
+	void hello();
 
-	void hello2() {
-		std::cout << "Hello World2!\n";
-	}
+	void hello2();
 };
 #endif

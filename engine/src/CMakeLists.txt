@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.14)
 
 project(Engine)
 #set(NAMESPACE_NAME "Engine")
@@ -14,16 +14,30 @@ set(ENGINE_VERSION_STRING ${ENGINE_VERSION_MAJOR}.${ENGINE_VERSION_MINOR}.${ENGI
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
+include(FetchContent)
 
+#Fetch GLM for vector math
+FetchContent_Declare(
+	glm
+	GIT_REPOSITORY https://github.com/g-truc/glm.git
+	GIT_TAG		   0.9.9.8
+)
+FetchContent_GetProperties(glm)
+set(GLM_TEST_ENABLE OFF CACHE BOOL "" FORCE)
 
+FetchContent_Populate(glm)
+FetchContent_MakeAvailable(glm)
+add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
 
 file(GLOB SOURCE_FILES
-	Engine/**)
+	Engine/*.cpp
+    Engine/include/*.hpp)
 
 # Get the publicc header files
 file(GLOB PUBLIC_HEADER_FILES
 	"Engine/include/*.h"
 	"Engine/include/*.hpp"
+
 )
 add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
 
@@ -35,6 +49,8 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Engine/>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        $<BUILD_INTERFACE:${glm_SOURCE_DIR}>
+      
     )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -87,6 +103,3 @@ install(
   COMPONENT
     Development
 )
-
-
-#install(FILES ${PUBLIC_HEADER_FILES} DESTINATION  include/Mach/)

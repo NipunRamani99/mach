@@ -11,19 +11,24 @@ FetchContent_MakeAvailable(gtest)
 
 
 add_executable(
-    unit_tests
-    example.cpp
- )
+    BoxRigidBodyTest
+    BoxRigidBodyTest.cpp)
+add_executable(CollisionTest
+                CollisionTest.cpp)
 
-target_link_libraries(unit_tests
-    Engine  
+target_link_libraries(BoxRigidBodyTest
+    PUBLIC
+    Engine 
+    PRIVATE
+    gtest_main
+  )
+target_link_libraries(CollisionTest
+    PUBLIC
+    Engine 
+    PRIVATE
     gtest_main
   )
 
 include(GoogleTest)
-gtest_discover_tests(unit_tests
-  PROPERTIES
-    LABELS "unit"
-  DISCOVERY_TIMEOUT  # how long to wait (in seconds) before crashing
-    240
-  )
+gtest_discover_tests(BoxRigidBodyTest)
+gtest_discover_tests(CollisionTest)
