@@ -18,10 +18,10 @@ TEST(CollisonTest, IntersectingPolygons) {
 		{2.0f, 2.0f},
 		{2.0f, 0.0f}
 	};
+	
+	Collisions::IntersectionRecord intersecting = Collisions::polygonIntersection(verticesA, verticesB);
 
-	bool intersecting = Collisions::polygonIntersection(verticesA, verticesB);
-
-	ASSERT_TRUE(intersecting);
+	ASSERT_TRUE(intersecting.intersecting);
 }
 
 TEST(CollisonTest, NonIntersectingPolygons) {
@@ -36,7 +36,27 @@ TEST(CollisonTest, NonIntersectingPolygons) {
 		{2.0f, 0.0f}
 	};
 
-	bool intersecting = Collisions::polygonIntersection(verticesA, verticesB);
+	Collisions::IntersectionRecord intersecting = Collisions::polygonIntersection(verticesA, verticesB);
 
-	ASSERT_FALSE(intersecting);
+	ASSERT_FALSE(intersecting.intersecting);
+}
+
+TEST(CollisonTest, IntersectingSquare) {
+	std::vector<glm::vec2> verticesA = {
+		{0.0f, 0.0f},
+		{0.0f, 1.0f},
+		{1.0f, 1.0f},
+		{1.0f, 0.0f}
+	};
+	std::vector<glm::vec2> verticesB = {
+		{0.50f, 0.970f},
+		{0.50f, 2.0f},
+		{1.50f, 2.0f},
+		{1.50f, 1.0f}
+	};
+	Collisions::IntersectionRecord intersecting = Collisions::polygonIntersection(verticesA, verticesB);
+	ASSERT_TRUE(intersecting.intersecting);
+	ASSERT_LE(float(std::abs(intersecting.depth)), 0.03);
+	ASSERT_EQ(intersecting.axis.x, 0.0f);
+	ASSERT_EQ(intersecting.axis.y, 1.0f);
 }

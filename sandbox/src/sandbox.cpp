@@ -1,18 +1,37 @@
-#include <iostream>
-#include <include/mach.hpp>
-#include <include/hello.hpp>
-#include <include/Foo.hpp>
-#include <include/PhysicsObject.hpp>
-#include <glm/glm.hpp>
-int main(int* argc, char** argv) {
-	Mach mach;
-	Hello hello;
-	Foo foo;
-	hello.hello();
-	hello.hello2();
-	foo.foo();
-	PhysicsObject physicsobj;
-	std::cout << "Test\n";
-	std::cout << "Adding 3 and 5: " << mach.addNum(3, 5);
-	return 0;
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Clock.hpp>
+#include <SFML/Window/Event.hpp>
+
+#include <imgui-SFML.h>
+#include <imgui.h>
+
+int main() {
+    sf::RenderWindow window(sf::VideoMode(1280, 720), "Mach Sandbox");
+    window.setFramerateLimit(0);
+    ImGui::SFML::Init(window);
+
+    sf::Clock deltaClock;
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            ImGui::SFML::ProcessEvent(event);
+
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
+
+        ImGui::SFML::Update(window, deltaClock.restart());
+
+        ImGui::Begin("Mach Sandbox");
+        ImGui::Text("Hi");
+        ImGui::End();
+        window.clear();
+        ImGui::SFML::Render(window);
+        window.display();
+    }
+
+    ImGui::SFML::Shutdown();
+
+    return 0;
 }

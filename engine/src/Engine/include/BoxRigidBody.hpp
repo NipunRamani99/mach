@@ -3,10 +3,11 @@
 #include <glm/glm.hpp>
 #include <vector>
 struct BoxRigidBody {
-	glm::vec2 position_current;
-	glm::vec2 position_old;
-	glm::vec2 acceleration;
-	glm::vec2 size;
+	glm::vec2 position_current = { 0.0f, 0.0f };
+	glm::vec2 position_old = { 0.0f, 0.0f };
+	glm::vec2 acceleration = { 0.0f, 0.0f };
+	glm::vec2 size = { 0.0f,0.0f };
+	float rotation = 0.0f;
 	std::vector<glm::vec2> getVertices() {
 		//calculate vertex positions
 		glm::vec2 half_size = 0.5f * size;
