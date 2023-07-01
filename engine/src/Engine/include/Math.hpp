@@ -24,5 +24,4 @@ static glm::vec2 calculatePolygonCentroid(std::vector<glm::vec2>& vertices) {
 	centroid /= glm::vec2(vertices.size(), vertices.size());
 	return centroid;
 }
-
 #endif

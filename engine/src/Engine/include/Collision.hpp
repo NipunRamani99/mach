@@ -3,12 +3,26 @@
 #include "Math.hpp"
 #include <vector>
 #include <utility>
+#include "BoxRigidBody.hpp"
 class Collisions {
 public:
 	struct IntersectionRecord {
 		bool intersecting = false;
 		float depth = 0.0f;
 		glm::vec2 axis{0.0f};
+	};
+
+	struct CollisionManifold {
+		BoxRigidBody& bodyA;
+		BoxRigidBody& bodyB;
+		float depth = 0.0f;
+		glm::vec2 normal{ 0.0f };
+		glm::vec2 contact1{ 0.0f };
+		glm::vec2 contact2{0.0f};
+		size_t contactCount = 0;
+		bool intersecting = false;
+
+		CollisionManifold(BoxRigidBody& bodyA, BoxRigidBody& bodyB, bool intersecting = false, float depth = 0.0f, glm::vec2 normal = { 0.0f, 0.0f }, glm::vec2 contact1 = { 0.0f, 0.0f }, glm::vec2 contact2 = { 0.0f, 0.0f }, size_t contactCount = 0) : bodyA(bodyA), bodyB(bodyB), depth(depth), normal(normal), contact1(contact1), contact2(contact2), contactCount(contactCount),intersecting(intersecting) {}
 	};
 public:
 	static IntersectionRecord polygonIntersection(std::vector<glm::vec2> verticesA, std::vector<glm::vec2> verticesB) {
