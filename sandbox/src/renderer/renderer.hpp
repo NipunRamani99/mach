@@ -16,5 +16,14 @@ public:
 
 		window.draw(quad);
 	}
+
+	void renderContactPoint(sf::RenderWindow& window, glm::vec2 contactPoint) {
+		sf::RectangleShape rectShape;
+		rectShape.setSize(sf::Vector2f(5, 5));
+		rectShape.setFillColor(sf::Color::Red);
+		rectShape.setOrigin(2.5, 2.5);
+		rectShape.setPosition(contactPoint.x, contactPoint.y);
+		window.draw(rectShape);
+	}
 };
 #endif

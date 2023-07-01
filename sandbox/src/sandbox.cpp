@@ -33,18 +33,36 @@ int main() {
 
         ImGui::Begin("Mach Sandbox");
         
-        ImGui::End();
-
         physics.update(dt);
         window.clear(clearBackground);
+        auto & contactManifolds = physics.mach.getContactList();
         auto & staticObjects = physics.mach.getStaticObjects();
         auto & dynamicObjects = physics.mach.getDynamicObjects();
+
+        for (size_t i = 0; i < dynamicObjects.size(); i++) {
+            auto& dynamicObject = dynamicObjects[i];
+            ImGui::Text("Dynamic Object %f", i);
+            ImGui::Text("Position: %f,%f", dynamicObject.position_current.x, dynamicObject.position_current.y);
+            ImGui::Text("Rotation: %f", dynamicObject.rotation_current);
+
+        }
+
         for(auto & dynamicObjects: dynamicObjects) {
 			renderer.render(window, dynamicObjects);
+
 		}
         for (auto& staticObject : staticObjects) {
             renderer.render(window, staticObject);
         }
+        for (auto& contactManifold : contactManifolds) {
+            renderer.renderContactPoint(window, contactManifold.contact1);
+            if (contactManifold.contactCount > 1) {
+                renderer.renderContactPoint(window, contactManifold.contact2);
+            }
+        }
+
+        ImGui::End();
+
         ImGui::SFML::Render(window);
         
         window.display();

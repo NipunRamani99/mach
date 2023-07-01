@@ -91,6 +91,65 @@ public:
 		return record;
 	}
 
+	static std::pair<float, glm::vec2> pointSegmentDistance(glm::vec2 p, glm::vec2 a, glm::vec2 b) {
+		glm::vec2 contact = a;
+		glm::vec2 ab = b - a;
+		glm::vec2 pa = p - a;
+		float t = glm::dot(pa, ab) / glm::dot(ab, ab);
+		if (t <= 0.0f) {
+			contact = a;
+		} else if (t >= 1.0f) {
+			contact = b;
+		}
+		else {
+			contact = a + t * ab;
+		}
+		return { glm::length(contact - p), contact };
+	}
+
+	static void findContactPoints(std::vector<glm::vec2>& verticesA, std::vector<glm::vec2>& verticesB, CollisionManifold& collisionManifold) {
+		glm::vec2 contactPoint1 = { 0.0f, 0.0f };
+		glm::vec2 contactPoint2 = { 0.0f, 0.0f };
+		int contactPoints = 0;
+		float minDistance = std::numeric_limits<float>::max();
+		for (size_t i = 0; i < verticesA.size(); i++) {
+			glm::vec2 p = verticesA[i];
+			for (size_t j = 0; j < verticesB.size(); j++) {
+				glm::vec2 va = verticesB[j];
+				glm::vec2 vb = verticesB[(j + 1) % verticesB.size()];
+				auto [distance, contact] = pointSegmentDistance(p, va, vb);
+				if (std::abs(distance - minDistance) < 0.0001 && contactPoint1 != contact) {
+					contactPoint2 = contact;
+					contactPoints = 2;
+				}else if(distance < minDistance) {
+					minDistance = distance;
+					contactPoint1 = contact;
+					contactPoints = 1;
+				} 
+			}
+		}
+		for (size_t i = 0; i < verticesB.size(); i++) {
+			glm::vec2 p = verticesB[i];
+			for (size_t j = 0; j < verticesA.size(); j++) {
+				glm::vec2 va = verticesA[j];
+				glm::vec2 vb = verticesA[(j + 1) % verticesA.size()];
+				auto [distance, contact] = pointSegmentDistance(p, va, vb);
+				if (std::abs(distance - minDistance) < 0.0001 && contactPoint1 != contact) {
+					contactPoint2 = contact;
+					contactPoints = 2;
+				}
+				else if (distance < minDistance) {
+					minDistance = distance;
+					contactPoint1 = contact;
+					contactPoints = 1;
+				}
+			}
+		}
+		collisionManifold.contact1 = contactPoint1;
+		collisionManifold.contact2 = contactPoint2;
+		collisionManifold.contactCount = contactPoints;
+	}
+
 	static std::pair<float,float> projectVertices(std::vector<glm::vec2>& vertices, glm::vec2 axis) {
 		float min = std::numeric_limits<float>::max();
 		float max = std::numeric_limits<float>::min();

@@ -8,18 +8,27 @@ struct BoxRigidBody {
 	glm::vec2 position_old = { 0.0f, 0.0f };
 	glm::vec2 acceleration = { 0.0f, 0.0f };
 	glm::vec2 size = { 0.0f,0.0f };
+	glm::vec3 color = { 1.0f,1.0f,1.0f };
+	float mass = 1.0f;
+	float inv_mass = 1.0f; 
+	float restitution = 0.0f;
+	float inertia = 1.0f;
+	float inv_inertia = 1.0f;
 	float rotation_old = 0.0f;
 	float rotation_current = 0.0f;
 	float angular_acceleration = 0.0f;
-	glm::vec3 color = { 1.0f,1.0f,1.0f };
+	
 	bool is_static = false;
-	BoxRigidBody(glm::vec2 position = { 0.0f,0.0f }, glm::vec2 size = { 20.0f,20.0f }, float rotation = 0.0f, glm::vec3 color = { 1.0f,1.0f,1.0f }) {
+	BoxRigidBody(glm::vec2 position = { 0.0f,0.0f }, glm::vec2 size = { 20.0f,20.0f }, float rotation = 0.0f, float mass = 1.0f, glm::vec3 color = { 1.0f,1.0f,1.0f }, bool is_static = false) {
 		this->position_current = position;
 		this->position_old = position;
 		this->size = size;
 		this->rotation_current = rotation;
 		this->rotation_old = rotation;
 		this->color = color;
+		this->inv_mass = 1.0f / mass;
+		this->is_static = is_static;
+		calculateInertia();
 	}
 
 	std::vector<glm::vec2> getVertices() {
@@ -54,6 +63,10 @@ struct BoxRigidBody {
 		acceleration = { 0.0f,0.0f };
 	}
 
+	glm::vec2 getVelocity() {
+		return position_current - position_old;
+	}
+
 	void setVelocity(glm::vec2 vel, float dt) {
 		position_old = position_current - vel * dt;
 	}
@@ -62,12 +75,27 @@ struct BoxRigidBody {
 		this->acceleration += acceleration;
 	}
 
+	float getAngularVelocity() {
+		return rotation_current - rotation_old;
+	}
+
 	void setAngularVelocity(float angular_velocity, float dt) {
 		rotation_old = rotation_current - angular_velocity * dt;
 	}
 
 	void angularAccelerate(float angular_acceleration) {
 		this->angular_acceleration += angular_acceleration;
+	}
+
+	void calculateInertia() {
+		if (!is_static) {
+			inertia = (mass * (size.x * size.x + size.y * size.y)) / 12.0f;
+			inv_inertia = 1.0f / inertia;
+		} else {
+			inertia = 0.0f;
+			inv_inertia = 0.0f;
+			mass = 0.0f;
+		}
 	}
 };
 #endif
