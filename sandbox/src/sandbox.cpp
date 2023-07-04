@@ -40,10 +40,16 @@ int main() {
         auto & dynamicObjects = physics.mach.getDynamicObjects();
 
         for (size_t i = 0; i < dynamicObjects.size(); i++) {
+            
             auto& dynamicObject = dynamicObjects[i];
-            ImGui::Text("Dynamic Object %f", i);
-            ImGui::Text("Position: %f,%f", dynamicObject.position_current.x, dynamicObject.position_current.y);
-            ImGui::Text("Rotation: %f", dynamicObject.rotation_current);
+            ImGui::Separator();
+            std::string title = "Dynamic Object %f#" + std::to_string(i);
+            ImGui::Text(title.c_str(), i);
+            ImGui::Text("Position: %f,%f", dynamicObject.position.x, dynamicObject.position.y);
+            ImGui::Text("Rotation: %f", dynamicObject.angle);
+            ImGui::Text("Linear Velocity: %f %f", dynamicObject.linear_velocity.x, dynamicObject.linear_velocity.y);
+            ImGui::Text("Angular Velocity: %f", dynamicObject.angular_velocity);
+
 
         }
 

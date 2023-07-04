@@ -11,8 +11,8 @@ private:
 	std::vector<BoxRigidBody> staticObjects;
 	std::vector<BoxRigidBody> dynamicObjects;
 	std::vector<Collisions::CollisionManifold> contactList;
-
-	glm::vec2 gravity = glm::vec2(0.0f, 0.0f);
+	const int num_iterations = 8;
+	glm::vec2 gravity = glm::vec2(0.0f,100.0f);
 	float angularAcceleration = 0.0f;
 public:
 	Mach() {
@@ -45,15 +45,14 @@ public:
 	}
 
 	void update(float dt) {
-		applyGravity();
-		applyAngularAcceleration(dt);
-		contactList.clear();
-		checkCollisions();
-		checkCollisionWithStaticBodies();
-		solveCollisions(dt);
-		updateRotation(dt);
-		updatePosition(dt);
+		dt = dt / num_iterations;
+		for (int i = 0; i < num_iterations; i++) {
+			contactList.clear();
+			step(dt);
+			narrowPhase();
+			applyGravity();
 
+		}
 	}
 
 	void applyGravity() {
@@ -62,9 +61,10 @@ public:
 		}
 	}
 
-	void applyAngularAcceleration(float dt) {
-		for (auto& dynamicObject : dynamicObjects) {
-			dynamicObject.setAngularVelocity(angularAcceleration, dt);
+	
+	void step(float dt) {
+		for(auto& dynamicObject : dynamicObjects) {
+			dynamicObject.step(dt, num_iterations);
 		}
 	}
 
@@ -79,8 +79,6 @@ public:
 			dynamicObject.updateVelocity(dt);
 		}
 	}
-
-
 
 	void solveRigidBodyCollision(BoxRigidBody& rigidBodyA, BoxRigidBody& rigidBodyB, Collisions::CollisionManifold& record) {
 		glm::vec2 normal = record.normal;
@@ -97,15 +95,15 @@ public:
 
 		glm::vec2 impulse = j * normal;
 
-		rigidBodyA.position_current -= rigidBodyA.inv_mass * impulse;
-		rigidBodyB.position_current += rigidBodyB.inv_mass * impulse;
+		rigidBodyA.linear_velocity -= rigidBodyA.inv_mass * impulse;
+		rigidBodyB.linear_velocity += rigidBodyB.inv_mass * impulse;
 	}
 
 	static float cross(glm::vec2 a, glm::vec2 b) {
 		return a.x * b.y - a.y * b.x;
 	}
 
-	void solveRigidBodyCollisionWithInertia(Collisions::CollisionManifold& record, float dt) {
+	void solveRigidBodyCollisionWithInertia(Collisions::CollisionManifold& record) {
 		BoxRigidBody& rigidBodyA = record.bodyA;
 		BoxRigidBody& rigidBodyB = record.bodyB;
 		glm::vec2 normal = record.normal;
@@ -113,15 +111,19 @@ public:
 		glm::vec2 contactPoint2 = record.contact2;
 		size_t contactCount = record.contactCount;
 		float depth = record.depth;
+		glm::vec2 zero = { 0.0f,0.0f };
+		//float e = std::min(rigidBodyA.restitution, rigidBodyB.restitution);
+		std::array<glm::vec2, 2> contactPoints = { contactPoint1, contactPoint2 };
+		std::array<glm::vec2, 2> impulses = { zero,zero };
+		std::array<glm::vec2, 2> raList = { zero, zero };
+		std::array<glm::vec2, 2> rbList = { zero, zero };
 
 		float e = std::min(rigidBodyA.restitution, rigidBodyB.restitution);
-		std::array<glm::vec2, 2> contactPoints = { contactPoint1, contactPoint2 };
-		std::array<glm::vec2, 2> impulses;
-		std::array<glm::vec2, 2> raList;
-		std::array<glm::vec2, 2> rbList;
+
+
 		for (size_t i = 0; i < contactCount; i++) {
-			glm::vec2 ra = contactPoints[i] - rigidBodyA.position_current;
-			glm::vec2 rb = contactPoints[i] - rigidBodyB.position_current;
+			glm::vec2 ra = contactPoints[i] - rigidBodyA.position;
+			glm::vec2 rb = contactPoints[i] - rigidBodyB.position;
 			raList[i] = ra;
 			rbList[i] = rb;
 
@@ -141,34 +143,41 @@ public:
 			float raPerpDotNormal = glm::dot(raPerp, normal);
 			float rbPerpDotNormal = glm::dot(rbPerp, normal);
 
-			float denom = rigidBodyA.inv_mass + rigidBodyB.inv_mass + rigidBodyA.inv_inertia * (raPerpDotNormal * raPerpDotNormal) + rigidBodyB.inv_inertia * (rbPerpDotNormal * rbPerpDotNormal);
+			float denom = glm::dot(normal,normal) * (rigidBodyA.inv_mass + rigidBodyB.inv_mass) + rigidBodyA.inv_inertia * (raPerpDotNormal * raPerpDotNormal) + rigidBodyB.inv_inertia * (rbPerpDotNormal * rbPerpDotNormal);
 
-			float j = -(1.0f + e) * contactVelocityMag;
+			float j = -(1.0f + 1.00f) * contactVelocityMag;
 			j /= denom;
-			j /= (float)contactCount;
+		    j /= (float)contactCount;
 
 			glm::vec2 impulse = j * normal;
-			impulses[i] = impulse;
+		    impulses[i] = impulse;
 
 		}
-		
-		for (size_t i = 0; i < impulses.size(); i++) {
-			rigidBodyA.position_current -= rigidBodyA.inv_mass * impulses[i];
-			float new_angular_velocityA = rigidBodyA.getAngularVelocity() - rigidBodyA.inv_inertia * cross(raList[i], impulses[i]);
-			rigidBodyA.setAngularVelocity(new_angular_velocityA, dt);
-			rigidBodyB.position_current += rigidBodyB.inv_mass * impulses[i];
-			float new_angular_velocityB = rigidBodyB.getAngularVelocity() + rigidBodyB.inv_inertia * cross(rbList[i], impulses[i]);
-			rigidBodyB.setAngularVelocity(new_angular_velocityB, dt);
+
+		for (size_t i = 0; i < record.contactCount; i++) {
+			if (!rigidBodyA.is_static) {
+				rigidBodyA.linear_velocity -= rigidBodyA.inv_mass * impulses[i];
+				float new_angular_velocityA = rigidBodyA.getAngularVelocity() - rigidBodyA.inv_inertia * cross(raList[i], impulses[i]);
+				rigidBodyA.angular_velocity = new_angular_velocityA;
+			}
+			if (!rigidBodyB.is_static) {
+				rigidBodyB.linear_velocity += rigidBodyB.inv_mass * impulses[i];
+				float new_angular_velocityB = rigidBodyB.getAngularVelocity() + rigidBodyB.inv_inertia * cross(rbList[i], impulses[i]);
+				rigidBodyB.angular_velocity = new_angular_velocityB;
+			}
+
 		}
 	}
 
+
 	void solveRigidBodyCollisionWithStaticBodies(BoxRigidBody& dynamicObjectA, BoxRigidBody& staticObjectB, Collisions::CollisionManifold& record) {
-		dynamicObjectA.position_current -= (record.depth) * record.normal;
+		dynamicObjectA.position -= (record.depth) * record.normal;
 	}
 
 	void checkCollisions() {
 		for (size_t i = 0; i < dynamicObjects.size(); i++) {
 			std::vector<glm::vec2> verticesA = dynamicObjects[i].getVertices();
+			if (dynamicObjects[i].is_static)continue;
 			for (size_t j = i + 1; j < dynamicObjects.size(); j++) {
 				std::vector<glm::vec2> verticesB = dynamicObjects[j].getVertices();
 				Collisions::IntersectionRecord intersectionRecord = Collisions::polygonIntersection(verticesA, verticesB);
@@ -196,31 +205,66 @@ public:
 		}
 	}
 
-	void seperateBodies(Collisions::CollisionManifold & manifold) {
-		BoxRigidBody & rigidBodyA = manifold.bodyA;
-		BoxRigidBody & rigidBodyB = manifold.bodyB;
+	void seperateBodies(BoxRigidBody & rigidBodyA, BoxRigidBody & rigidBodyB, Collisions::IntersectionRecord & intersection) {
+		if (rigidBodyA.is_static && rigidBodyB.is_static) return;
 		if (rigidBodyA.is_static) {
-			rigidBodyB.position_current -= (manifold.depth) * manifold.normal;
+			rigidBodyB.position -= (intersection.depth) * intersection.axis;
 		}
 		else if (rigidBodyB.is_static) {
-			rigidBodyA.position_current -= (manifold.depth) * manifold.normal;
+			rigidBodyA.position -= (intersection.depth) * intersection.axis;
 		}
 		else {
-			rigidBodyA.position_current -= (manifold.depth / 2.0f) * manifold.normal;
-			rigidBodyB.position_current += (manifold.depth / 2.0f) * manifold.normal;
+			rigidBodyA.position -= (intersection.depth / 2.0f) * intersection.axis;
+			rigidBodyB.position += (intersection.depth / 2.0f) * intersection.axis;
 		}
 	}
 
+	void narrowPhase() {
 
+
+		for(size_t i = 0; i < dynamicObjects.size(); i++) {
+			BoxRigidBody& rigidBodyA = dynamicObjects[i];
+			if(rigidBodyA.is_static) {
+				continue;
+			}
+			for(size_t j = 0; j < dynamicObjects.size(); j++) {
+				if (i == j)
+					continue;
+ 				BoxRigidBody& rigidBodyB = dynamicObjects[j];
+				if(rigidBodyA.is_static && rigidBodyB.is_static) {
+					continue;
+				}
+				std::vector<glm::vec2> verticesA = rigidBodyA.getVertices();
+				std::vector<glm::vec2> verticesB = rigidBodyB.getVertices();
+				Collisions::IntersectionRecord intersectionRecord = Collisions::polygonIntersection(verticesA, verticesB);
+				if(intersectionRecord.intersecting) {
+					Collisions::CollisionManifold collisionManifold(rigidBodyA, rigidBodyB, intersectionRecord.intersecting, intersectionRecord.depth, intersectionRecord.axis);
+					seperateBodies(rigidBodyA, rigidBodyB, intersectionRecord);
+					verticesA = rigidBodyA.getVertices();
+					verticesB = rigidBodyB.getVertices();
+					Collisions::findContactPoints(verticesA, verticesB, collisionManifold);
+					solveRigidBodyCollisionWithInertia(collisionManifold);
+
+					//contactList.push_back(collisionManifold);
+				}
+			}
+		}
+		/*for (int i = 0; i < contactList.size(); i++) {
+			Collisions::CollisionManifold& contact = contactList[i];
+			BoxRigidBody& rigidBodyA = contact.bodyA;
+			BoxRigidBody& rigidBodyB = contact.bodyB;
+			
+		}*/
+	}
+		
 	void solveCollisions(float dt) {
 		
 		for (auto& contact : contactList) {
 			
-			seperateBodies(contact);
 			std::vector<glm::vec2> verticesA = contact.bodyA.getVertices();
 			std::vector<glm::vec2> verticesB = contact.bodyB.getVertices();
 			Collisions::findContactPoints(verticesA, verticesB, contact);
-			solveRigidBodyCollisionWithInertia(contact, dt);
+			solveRigidBodyCollisionWithInertia(contact);
 		}
 	}
 };

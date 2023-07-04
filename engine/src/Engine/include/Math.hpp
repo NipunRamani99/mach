@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 const float eps = 0.0001f;
+const glm::vec2 gravity{0.0f, 500.0f};
 static glm::vec2 rotateVec2Radians(glm::vec2 vertex, float radians) {
 	float _cos = glm::cos(radians);
 	float _sin = glm::sin(radians);

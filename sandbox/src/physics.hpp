@@ -6,43 +6,101 @@
 struct Physics {
 	Mach mach;
 
-	size_t num_dynamic_objects = 5;
+	size_t num_dynamic_objects = 0;
 
 	static std::random_device rd;
-	
+	bool is_button_pressed = false;
 	Physics() {
 		BoxRigidBody boxRigidBody;
 		boxRigidBody.size = { 1900.0f, 100.0f };
-		boxRigidBody.position_current = { 970.0f , 900.0f };
-		boxRigidBody.rotation_current = 0.0f;
+		boxRigidBody.position = { 970.0f , 1000.0f };
+		boxRigidBody.angle = 0.0f;
 		boxRigidBody.color = { 0.0f,255.0f * 0.92f,0.0f };
-		mach.addStaticObject(boxRigidBody);
+		boxRigidBody.is_static = true;
 
-		//BoxRigidBody boxRigidBody2;
-		//boxRigidBody2.size = { 800.0f, 50.0f };
-		//boxRigidBody2.position_current = { 500.0f , 600.0f };
-		//boxRigidBody2.position_old = { 500.0f , 600.0f };
-		//boxRigidBody2.rotation_current = PI / 9.0f;
-		//boxRigidBody2.color = { 0.0f,255.0f * 0.92f,0.0f };
-		//mach.addStaticObject(boxRigidBody2);
+		BoxRigidBody boxRigidBody2;
+		boxRigidBody2.size = { 1900.0f, 50.0f };
+		boxRigidBody2.position = { 970.0f , 0.0f };
+		boxRigidBody2.angle = 0.0f;
+		boxRigidBody2.color = { 0.0f,255.0f * 0.92f,0.0f };
+		boxRigidBody2.is_static = true;
 
-		//BoxRigidBody boxRigidBody3;
-		//boxRigidBody3.size = { 800.0f, 50.0f };
-		//boxRigidBody3.position_current = { 1200.0f , 350.0f };
-		//boxRigidBody3.position_old = { 1200.0f , 350.0f };
-		//boxRigidBody3.rotation_current = -PI / 9.0f;
-		//boxRigidBody3.color = { 0.0f,255.0f * 0.92f,0.0f };
-		//mach.addStaticObject(boxRigidBody3);
-		BoxRigidBody boxRigidBody2({ 100.0f,100.0f }, getRandomSize(), 0.0f, getRandomMass(), getRainbow(0));
-		BoxRigidBody boxRigidBody3({ 400.0f,100.0f }, getRandomSize(), 0.0f, getRandomMass(), getRainbow(0));
 
+		BoxRigidBody slope1;
+		slope1.size = { 800.0f, 50.0f };
+		slope1.position = { 500.0f , 600.0f };
+		slope1.angle = PI / 9.0f;
+		slope1.color = { 0.0f,255.0f * 0.92f,0.0f };
+		slope1.is_static = true;
+
+		BoxRigidBody slope2;
+		slope2.size = { 800.0f, 50.0f };
+		slope2.position = { 1200.0f , 350.0f };
+		slope2.angle = -PI / 9.0f;
+		slope2.color = { 0.0f,255.0f * 0.92f,0.0f };
+		slope2.is_static = true;
+
+		BoxRigidBody boxRigidBody4;
+		boxRigidBody4.size = { 1920.0f, 50.0f };
+		boxRigidBody4.position = { 1900.0f , 350.0f };
+		boxRigidBody4.angle = PI / 2.0f;
+		boxRigidBody4.color = { 0.0f,255.0f * 0.92f,0.0f };
+		boxRigidBody4.is_static = true;
+
+		BoxRigidBody boxRigidBody5;
+		boxRigidBody5.size = { 1920.0f, 50.0f };
+		boxRigidBody5.position = { 20.0f , 350.0f };
+		boxRigidBody5.angle = PI / 2.0f;
+		boxRigidBody5.color = { 0.0f,255.0f * 0.92f,0.0f };
+		boxRigidBody5.is_static = true;
+
+		
+		BoxRigidBody dynamicBoxRigidBody2({ 300.0f,100.0f }, getRandomSize(), 0.0f, 5, 0.5f, getRainbow(0));
+		BoxRigidBody dynamicBoxRigidBody3({ 1100.0f,100.0f }, getRandomSize(), 0.0f,6, 0.5f, getRainbow(1));
+		/*dynamicBoxRigidBody2.linear_velocity = getRandomVelocity();
+		dynamicBoxRigidBody3.linear_velocity = getRandomVelocity();
+		dynamicBoxRigidBody2.angular_velocity = getRandomAngularVelocity();
+		dynamicBoxRigidBody3.angular_velocity = getRandomAngularVelocity();*/
+
+		for (int i = 0; i < num_dynamic_objects; i++) {
+			BoxRigidBody dynamicBoxRigidBody(getRandomPosition(), getRandomSize(), getRandomAngle(), 0.005, 0.5f, getRainbow(i));
+			dynamicBoxRigidBody.linear_velocity = getRandomVelocity();
+			dynamicBoxRigidBody.angular_velocity = getRandomAngularVelocity();
+			mach.addDynamicObject(dynamicBoxRigidBody);
+		}
+
+		//mach.addDynamicObject(dynamicBoxRigidBody2);
+		//mach.addDynamicObject(dynamicBoxRigidBody3);
+		mach.addDynamicObject(boxRigidBody);
+		//mach.addDynamicObject(boxRigidBody3);
 		mach.addDynamicObject(boxRigidBody2);
-		mach.addDynamicObject(boxRigidBody3);
+		mach.addDynamicObject(boxRigidBody4);
+		mach.addDynamicObject(boxRigidBody5);
+		mach.addDynamicObject(slope1);
+		mach.addDynamicObject(slope2);
+
+
 	};
-
-
-
 	
+	float getRandomAngle() {
+		return (rand() % 360) * PI / 180.0f;
+	}
+
+	float getRandomAngularVelocity() {
+		return -1.0f + 2.0f * (rand() % 2);
+	}
+
+	glm::vec2 getRandomVelocity() {
+		float x = 0.0f;
+		float y = 0.0f;
+		while (x == 0.0f) {
+			x = -10.0f + (rand() % 20);
+		}
+		while (y == 0.0f) {
+			y = -10.0f + (rand() % 20);
+		}
+		return glm::vec2(x, y);
+	}
 
 	float getRandomMass() {
 		return 1.0f + 10.0f * (rand() % 10);
@@ -71,23 +129,30 @@ struct Physics {
 	}
 
 	void processInput(sf::Event & e, float dt) {
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
-			mach.getDynamicObjects()[0].accelerate({0.0f, -200.0f});
+		//if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
+		//	mach.getDynamicObjects()[0].move({0.0f, -10.0f});
+		//}
+		//if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
+		//	mach.getDynamicObjects()[0].move({ 0.0f, 10.0f });
+		//}
+		//if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+		//	mach.getDynamicObjects()[0].move({ -10.0f,0.0f });
+		//}
+		//if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+		//	mach.getDynamicObjects()[0].move({ 10.0f,0.0f });
+		//}
+		
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !is_button_pressed) {
+			static int i = 0;
+			is_button_pressed = true;
+			BoxRigidBody dynamicBoxRigidBody({sf::Mouse::getPosition().x, sf::Mouse::getPosition().y}, getRandomSize(), getRandomAngle(), 0.05, 0.5f, getRainbow(i++));
+				dynamicBoxRigidBody.linear_velocity = getRandomVelocity();
+				dynamicBoxRigidBody.angular_velocity = getRandomAngularVelocity();
+				dynamicBoxRigidBody.is_static = false;
+				mach.addDynamicObject(dynamicBoxRigidBody);
 		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-			mach.getDynamicObjects()[0].accelerate({ 0.0f, 200.0f });
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-			mach.getDynamicObjects()[0].accelerate({ -200.0f,0.0f });
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
-			mach.getDynamicObjects()[0].accelerate({ 200.0f,0.0f });
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E)) {
-			mach.getDynamicObjects()[0].angularAccelerate(20.0f);
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
-			mach.getDynamicObjects()[0].angularAccelerate(-20.0f);
+		if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+			is_button_pressed = false;
 		}
 
 	}

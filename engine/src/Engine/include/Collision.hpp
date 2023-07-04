@@ -134,7 +134,7 @@ public:
 				glm::vec2 va = verticesA[j];
 				glm::vec2 vb = verticesA[(j + 1) % verticesA.size()];
 				auto [distance, contact] = pointSegmentDistance(p, va, vb);
-				if (std::abs(distance - minDistance) < 0.0001 && contactPoint1 != contact) {
+				if (std::abs(distance - minDistance) < 0.00001 && contactPoint1 != contact) {
 					contactPoint2 = contact;
 					contactPoints = 2;
 				}

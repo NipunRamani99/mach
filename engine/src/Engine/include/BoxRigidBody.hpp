@@ -4,30 +4,34 @@
 #include "Math.hpp"
 #include <vector>
 struct BoxRigidBody {
-	glm::vec2 position_current = { 0.0f, 0.0f };
-	glm::vec2 position_old = { 0.0f, 0.0f };
-	glm::vec2 acceleration = { 0.0f, 0.0f };
+	glm::vec2 position = { 0.0f, 0.0f };
+	glm::vec2 linear_velocity = { 0.0f, 0.0f };
 	glm::vec2 size = { 0.0f,0.0f };
 	glm::vec3 color = { 1.0f,1.0f,1.0f };
-	float mass = 1.0f;
-	float inv_mass = 1.0f; 
+	glm::vec2 force = { 0.0f,0.0f };
+	float mass = 0.0f;
+	float inv_mass = 0.0f; 
 	float restitution = 0.0f;
 	float inertia = 1.0f;
 	float inv_inertia = 1.0f;
-	float rotation_old = 0.0f;
-	float rotation_current = 0.0f;
-	float angular_acceleration = 0.0f;
-	
+	float angle = 0.0f;
+	float angular_velocity = 0.0f;
+	float static_friction = 0.1f;
+	float dynamic_friction = 0.1f;
+
 	bool is_static = false;
-	BoxRigidBody(glm::vec2 position = { 0.0f,0.0f }, glm::vec2 size = { 20.0f,20.0f }, float rotation = 0.0f, float mass = 1.0f, glm::vec3 color = { 1.0f,1.0f,1.0f }, bool is_static = false) {
-		this->position_current = position;
-		this->position_old = position;
+	BoxRigidBody(glm::vec2 position = { 0.0f,0.0f }, glm::vec2 size = { 20.0f,20.0f }, float rotation = 0.0f, float mass = 1.0f, float restitution = 0.0f,  glm::vec3 color = { 1.0f,1.0f,1.0f }, bool is_static = false) {
+		this->position = position;
 		this->size = size;
-		this->rotation_current = rotation;
-		this->rotation_old = rotation;
+		this->angle = rotation;
 		this->color = color;
-		this->inv_mass = 1.0f / mass;
+		this->mass = mass;
 		this->is_static = is_static;
+		if (!is_static) {
+			this->inv_mass = 1.0f / mass;
+		}
+		this->static_friction = 0.6;
+		this->dynamic_friction = 0.4;
 		calculateInertia();
 	}
 
@@ -40,61 +44,77 @@ struct BoxRigidBody {
 		glm::vec2 bl{tl.x, br.y};
 		std::vector<glm::vec2> vertices = { bl, tl, tr, br };
 		for (int i = 0; i < 4; i++) {
-			vertices[i] = rotateVec2Radians(vertices[i],rotation_current);
-			vertices[i] = vertices[i] + position_current;
+			vertices[i] = rotateVec2Radians(vertices[i],angle);
+			vertices[i] = vertices[i] + position;
 		}
 		return vertices;
 	}
 
+	void step(float dt, int iterations) {
+		
+		dt /= (float)iterations;
+		updateVelocity(dt);
+		updateAngularVelocity(dt);
 
+	}
 	void updateAngularVelocity(float dt) {
-		const float last_update_rotation = rotation_current - rotation_old;
-		const float new_rotation = rotation_current + last_update_rotation + (angular_acceleration) * (dt * dt);
-		rotation_old = rotation_current;
-		rotation_current = new_rotation;
-		angular_acceleration = 0.0f;
+		if(this->is_static){
+				angular_velocity = 0.0f;
+			return;
+		}
+		angle += angular_velocity * dt;
 	}
 
 	void updateVelocity(float dt) {
-		const glm::vec2 last_update_move = position_current - position_old;
-		const glm::vec2 new_position = position_current + last_update_move + (acceleration - last_update_move * 40.0f) * (dt * dt);
-		position_old = position_current;
-		position_current = new_position;
-		acceleration = { 0.0f,0.0f };
-	}
+		if(this->is_static) {
+			linear_velocity = {0.0f,0.0f};
+			return;
+		}
+		glm::vec2 acceleration = force / mass;
+		linear_velocity += acceleration * dt;
+		position += linear_velocity*dt;
+		force = { 0.0f,0.0f };
 
-	glm::vec2 getVelocity() {
-		return position_current - position_old;
-	}
-
-	void setVelocity(glm::vec2 vel, float dt) {
-		position_old = position_current - vel * dt;
-	}
-
-	void accelerate(glm::vec2 acceleration) {
-		this->acceleration += acceleration;
 	}
 
 	float getAngularVelocity() {
-		return rotation_current - rotation_old;
+		if (is_static) return 0.0f;
+		else
+			return angular_velocity;
 	}
 
-	void setAngularVelocity(float angular_velocity, float dt) {
-		rotation_old = rotation_current - angular_velocity * dt;
+	glm::vec2 getVelocity() {
+		if (is_static) return { 0.0f,0.0f };
+		return linear_velocity;
 	}
 
-	void angularAccelerate(float angular_acceleration) {
-		this->angular_acceleration += angular_acceleration;
+	void setVelocity(glm::vec2 vel) {
+		linear_velocity = vel;
+	}
+
+	void move(glm::vec2 velocity) {
+		this->position += velocity;
+	}
+
+	void moveTo(glm::vec2 pos) {
+		this->position = pos;
+	}
+
+	void accelerate(glm::vec2 acceleration) {
+		if(is_static) return;
+		force += acceleration * mass;
 	}
 
 	void calculateInertia() {
 		if (!is_static) {
 			inertia = (mass * (size.x * size.x + size.y * size.y)) / 12.0f;
 			inv_inertia = 1.0f / inertia;
+			inv_mass = 1.0f / mass;
 		} else {
-			inertia = 0.0f;
-			inv_inertia = 0.0f;
-			mass = 0.0f;
+			inertia = 1.0f;
+			inv_inertia = 1.0f;
+			mass = 1.0f;
+			inv_mass = 0.0f;
 		}
 	}
 };
