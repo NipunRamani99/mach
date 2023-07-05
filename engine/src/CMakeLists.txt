@@ -27,6 +27,8 @@ set(GLM_TEST_ENABLE OFF CACHE BOOL "" FORCE)
 
 FetchContent_Populate(glm)
 FetchContent_MakeAvailable(glm)
+
+
 add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
 
 file(GLOB SOURCE_FILES
@@ -103,3 +105,6 @@ install(
   COMPONENT
     Development
 )
+
+set_target_properties(glm_shared PROPERTIES FOLDER "Vendor")
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "Mach")

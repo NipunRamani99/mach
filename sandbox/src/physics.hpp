@@ -145,7 +145,7 @@ struct Physics {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !is_button_pressed) {
 			static int i = 0;
 			is_button_pressed = true;
-			BoxRigidBody dynamicBoxRigidBody({sf::Mouse::getPosition().x, sf::Mouse::getPosition().y}, getRandomSize(), getRandomAngle(), 0.05, 0.5f, getRainbow(i++));
+			BoxRigidBody dynamicBoxRigidBody({sf::Mouse::getPosition().x, sf::Mouse::getPosition().y}, getRandomSize(), getRandomAngle(), 0.05f, 0.5f, getRainbow(i++));
 				dynamicBoxRigidBody.linear_velocity = getRandomVelocity();
 				dynamicBoxRigidBody.angular_velocity = getRandomAngularVelocity();
 				dynamicBoxRigidBody.is_static = false;
