@@ -3,69 +3,73 @@
 #include <include/mach.hpp>
 #include "Constants.hpp"
 #include <random>
+#include <filesystem>
+namespace fs = std::filesystem;
 struct Physics {
 	Mach mach;
-
+	
+	fs::file_type type;
 	size_t num_dynamic_objects = 0;
 
 	static std::random_device rd;
 	bool is_button_pressed = false;
+	bool is_key_pressed = false;
 	Physics() {
-		BoxRigidBody boxRigidBody;
-		boxRigidBody.size = { 1900.0f, 100.0f };
-		boxRigidBody.position = { 970.0f , 1000.0f };
-		boxRigidBody.angle = 0.0f;
-		boxRigidBody.color = { 0.0f,255.0f * 0.92f,0.0f };
-		boxRigidBody.is_static = true;
+		BoxRigidBody * boxRigidBody = new BoxRigidBody();
+		boxRigidBody->size = { 1900.0f, 100.0f };
+		boxRigidBody->position = { 970.0f , 1000.0f };
+		boxRigidBody->angle = 0.0f;
+		boxRigidBody->color = { 0.0f,255.0f * 0.92f,0.0f };
+		boxRigidBody->is_static = true;
 
-		BoxRigidBody boxRigidBody2;
-		boxRigidBody2.size = { 1900.0f, 50.0f };
-		boxRigidBody2.position = { 970.0f , 0.0f };
-		boxRigidBody2.angle = 0.0f;
-		boxRigidBody2.color = { 0.0f,255.0f * 0.92f,0.0f };
-		boxRigidBody2.is_static = true;
+		BoxRigidBody * boxRigidBody2 = new BoxRigidBody();
+		boxRigidBody2->size = { 1900.0f, 50.0f };
+		boxRigidBody2->position = { 970.0f , 0.0f };
+		boxRigidBody2->angle = 0.0f;
+		boxRigidBody2->color = { 0.0f,255.0f * 0.92f,0.0f };
+		boxRigidBody2->is_static = true;
 
 
-		BoxRigidBody slope1;
-		slope1.size = { 800.0f, 50.0f };
-		slope1.position = { 500.0f , 600.0f };
-		slope1.angle = PI / 9.0f;
-		slope1.color = { 0.0f,255.0f * 0.92f,0.0f };
-		slope1.is_static = true;
+		BoxRigidBody * slope1 = new BoxRigidBody();
+		slope1->size = { 800.0f, 50.0f };
+		slope1->position = { 500.0f , 600.0f };
+		slope1->angle = PI / 9.0f;
+		slope1->color = { 0.0f,255.0f * 0.92f,0.0f };
+		slope1->is_static = true;
 
-		BoxRigidBody slope2;
-		slope2.size = { 800.0f, 50.0f };
-		slope2.position = { 1200.0f , 350.0f };
-		slope2.angle = -PI / 9.0f;
-		slope2.color = { 0.0f,255.0f * 0.92f,0.0f };
-		slope2.is_static = true;
+		BoxRigidBody * slope2 = new BoxRigidBody();
+		slope2->size = { 800.0f, 50.0f };
+		slope2->position = { 1200.0f , 350.0f };
+		slope2->angle = -PI / 9.0f;
+		slope2->color = { 0.0f,255.0f * 0.92f,0.0f };
+		slope2->is_static = true;
 
-		BoxRigidBody boxRigidBody4;
-		boxRigidBody4.size = { 1920.0f, 50.0f };
-		boxRigidBody4.position = { 1900.0f , 350.0f };
-		boxRigidBody4.angle = PI / 2.0f;
-		boxRigidBody4.color = { 0.0f,255.0f * 0.92f,0.0f };
-		boxRigidBody4.is_static = true;
+		BoxRigidBody * boxRigidBody4 = new BoxRigidBody();
+		boxRigidBody4->size = { 1920.0f, 50.0f };
+		boxRigidBody4->position = { 1900.0f , 350.0f };
+		boxRigidBody4->angle = PI / 2.0f;
+		boxRigidBody4->color = { 0.0f,255.0f * 0.92f,0.0f };
+		boxRigidBody4->is_static = true;
 
-		BoxRigidBody boxRigidBody5;
-		boxRigidBody5.size = { 1920.0f, 50.0f };
-		boxRigidBody5.position = { 20.0f , 350.0f };
-		boxRigidBody5.angle = PI / 2.0f;
-		boxRigidBody5.color = { 0.0f,255.0f * 0.92f,0.0f };
-		boxRigidBody5.is_static = true;
+		BoxRigidBody * boxRigidBody5 = new BoxRigidBody();
+		boxRigidBody5->size = { 1920.0f, 50.0f };
+		boxRigidBody5->position = { 20.0f , 350.0f };
+		boxRigidBody5->angle = PI / 2.0f;
+		boxRigidBody5->color = { 0.0f,255.0f * 0.92f,0.0f };
+		boxRigidBody5->is_static = true;
 
 		
-		BoxRigidBody dynamicBoxRigidBody2({ 300.0f,100.0f }, getRandomSize(), 0.0f, 5, 0.5f, getRainbow(0));
-		BoxRigidBody dynamicBoxRigidBody3({ 1100.0f,100.0f }, getRandomSize(), 0.0f,6, 0.5f, getRainbow(1));
-		/*dynamicBoxRigidBody2.linear_velocity = getRandomVelocity();
+		//BoxRigidBody dynamicBoxRigidBody2({ 300.0f,100.0f }, getRandomSize(), 0.0f, 5, 0.5f, getRainbow(0));
+		//BoxRigidBody dynamicBoxRigidBody3({ 1100.0f,100.0f }, getRandomSize(), 0.0f,6, 0.5f, getRainbow(1));
+		/*dynamicBoxRigidBody2->linear_velocity = getRandomVelocity();
 		dynamicBoxRigidBody3.linear_velocity = getRandomVelocity();
-		dynamicBoxRigidBody2.angular_velocity = getRandomAngularVelocity();
+		dynamicBoxRigidBody2->angular_velocity = getRandomAngularVelocity();
 		dynamicBoxRigidBody3.angular_velocity = getRandomAngularVelocity();*/
 
 		for (int i = 0; i < num_dynamic_objects; i++) {
-			BoxRigidBody dynamicBoxRigidBody(getRandomPosition(), getRandomSize(), getRandomAngle(), 0.005, 0.5f, getRainbow(i));
-			dynamicBoxRigidBody.linear_velocity = getRandomVelocity();
-			dynamicBoxRigidBody.angular_velocity = getRandomAngularVelocity();
+			BoxRigidBody * dynamicBoxRigidBody = new BoxRigidBody(getRandomPosition(), getRandomSize(), getRandomAngle(), 0.005, 0.5f, getRainbow(i));
+			dynamicBoxRigidBody->linear_velocity = getRandomVelocity();
+			dynamicBoxRigidBody->angular_velocity = getRandomAngularVelocity();
 			mach.addDynamicObject(dynamicBoxRigidBody);
 		}
 
@@ -104,6 +108,10 @@ struct Physics {
 
 	float getRandomMass() {
 		return 1.0f + 10.0f * (rand() % 10);
+	}
+
+	float getRandomRadius() {
+		return 10.0f + 2.0f * (rand() % 10);
 	}
 
 	glm::vec2 getRandomPosition() {
@@ -145,16 +153,28 @@ struct Physics {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !is_button_pressed) {
 			static int i = 0;
 			is_button_pressed = true;
-			BoxRigidBody dynamicBoxRigidBody({sf::Mouse::getPosition().x, sf::Mouse::getPosition().y}, getRandomSize(), getRandomAngle(), 0.05f, 0.5f, getRainbow(i++));
-				dynamicBoxRigidBody.linear_velocity = getRandomVelocity();
-				dynamicBoxRigidBody.angular_velocity = getRandomAngularVelocity();
-				dynamicBoxRigidBody.is_static = false;
+			BoxRigidBody * dynamicBoxRigidBody = new BoxRigidBody({sf::Mouse::getPosition().x, sf::Mouse::getPosition().y}, getRandomSize(), getRandomAngle(), 0.05f, 0.5f, getRainbow(i++));
+				dynamicBoxRigidBody->linear_velocity = getRandomVelocity();
+				dynamicBoxRigidBody->angular_velocity = getRandomAngularVelocity();
+				dynamicBoxRigidBody->is_static = false;
 				mach.addDynamicObject(dynamicBoxRigidBody);
 		}
 		if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
 			is_button_pressed = false;
 		}
 
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C) && !is_key_pressed) {
+			static int j = 0;
+			CircleRigidBody* dynamicBoxRigidBody = new CircleRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, getRandomRadius(), getRandomAngle(), 0.05f, 0.5f, getRainbow(j++));
+			dynamicBoxRigidBody->linear_velocity = getRandomVelocity();
+			dynamicBoxRigidBody->angular_velocity = getRandomAngularVelocity();
+			dynamicBoxRigidBody->is_static = false;
+			mach.addDynamicObject(dynamicBoxRigidBody);
+			is_key_pressed = true;
+		}
+		if(!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C) ) {
+			is_key_pressed = false;
+		}
 	}
 
 	void update(float dt) {

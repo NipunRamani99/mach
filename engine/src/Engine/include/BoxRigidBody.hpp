@@ -3,24 +3,13 @@
 #include <glm/glm.hpp>
 #include "Math.hpp"
 #include <vector>
-struct BoxRigidBody {
-	glm::vec2 position = { 0.0f, 0.0f };
-	glm::vec2 linear_velocity = { 0.0f, 0.0f };
+#include "RigidBody.hpp"
+class BoxRigidBody  : public RigidBody {
+public:
 	glm::vec2 size = { 0.0f,0.0f };
-	glm::vec3 color = { 1.0f,1.0f,1.0f };
-	glm::vec2 force = { 0.0f,0.0f };
-	float mass = 0.0f;
-	float inv_mass = 0.0f; 
-	float restitution = 0.0f;
-	float inertia = 1.0f;
-	float inv_inertia = 1.0f;
-	float angle = 0.0f;
-	float angular_velocity = 0.0f;
-	float static_friction = 0.1f;
-	float dynamic_friction = 0.1f;
-
-	bool is_static = false;
-	BoxRigidBody(glm::vec2 position = { 0.0f,0.0f }, glm::vec2 size = { 20.0f,20.0f }, float rotation = 0.0f, float mass = 1.0f, float restitution = 0.0f,  glm::vec3 color = { 1.0f,1.0f,1.0f }, bool is_static = false) {
+	BoxRigidBody(glm::vec2 position = { 0.0f,0.0f }, glm::vec2 size = { 20.0f,20.0f }, float rotation = 0.0f, float mass = 1.0f, float restitution = 0.0f,  glm::vec3 color = { 1.0f,1.0f,1.0f }, bool is_static = false) 
+	{
+		this->type = Type::BOX;
 		this->position = position;
 		this->size = size;
 		this->angle = rotation;

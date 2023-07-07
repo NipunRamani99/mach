@@ -5,9 +5,9 @@
 #include <imgui-SFML.h>
 #include <imgui.h>
 #include "physics.hpp"
-#include "renderer/renderer.hpp"
+#include "rendering/renderer.hpp"
 #include "Constants.hpp"
-
+#include "include/CircleRigidBody.hpp"
 int main() {
     Physics physics;
     Renderer renderer;
@@ -19,6 +19,7 @@ int main() {
     ImGui::SFML::Init(window);
     float dt = 1 / 60.0f;
     sf::Clock deltaClock;
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -38,10 +39,10 @@ int main() {
         auto & contactManifolds = physics.mach.getContactList();
         auto & staticObjects = physics.mach.getStaticObjects();
         auto & dynamicObjects = physics.mach.getDynamicObjects();
-
-        for (size_t i = 0; i < dynamicObjects.size(); i++) {
+        auto & rigidBodies = physics.mach.getRigidBodies();
+        for (size_t i = 0; i < rigidBodies.size(); i++) {
             
-            auto& dynamicObject = dynamicObjects[i];
+            auto& dynamicObject = *rigidBodies[i];
             ImGui::Separator();
             std::string title = "Dynamic Object %f#" + std::to_string(i);
             ImGui::Text(title.c_str(), i);
@@ -49,30 +50,27 @@ int main() {
             ImGui::Text("Rotation: %f", dynamicObject.angle);
             ImGui::Text("Linear Velocity: %f %f", dynamicObject.linear_velocity.x, dynamicObject.linear_velocity.y);
             ImGui::Text("Angular Velocity: %f", dynamicObject.angular_velocity);
-
-
         }
 
-        for(auto & dynamicObjects: dynamicObjects) {
-			renderer.render(window, dynamicObjects);
-
+        for(RigidBody * rigidBodies: rigidBodies) {
+			renderer.renderRigidBody(window, rigidBodies);
 		}
         for (auto& staticObject : staticObjects) {
             renderer.render(window, staticObject);
         }
-        for (auto& contactManifold : contactManifolds) {
+        /*for (auto& contactManifold : contactManifolds) {
             renderer.renderContactPoint(window, contactManifold.contact1);
             if (contactManifold.contactCount > 1) {
                 renderer.renderContactPoint(window, contactManifold.contact2);
             }
-        }
+        }*/
+
 
         ImGui::End();
 
         ImGui::SFML::Render(window);
         
         window.display();
-        
     }
 
     ImGui::SFML::Shutdown();

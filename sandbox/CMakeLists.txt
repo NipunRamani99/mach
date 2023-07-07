@@ -14,7 +14,9 @@ add_subdirectory(dependencies) # add this
 
 # Add the source files
 file(GLOB SOURCE_FILES
-	src/**
+	src/*.hpp
+    src/*.cpp
+    src/rendering/*.hpp
 )
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} PRIVATE Engine sfml-graphics ImGui-SFML::ImGui-SFML)
