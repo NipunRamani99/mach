@@ -22,8 +22,6 @@ public:
 			return; 
 		}
 		linear_velocity += force * inv_mass * dt;
-		if(glm::dot(linear_velocity, linear_velocity) < 0.001f)
-			linear_velocity = { 0.0f,0.0f };
 	
 	}
 
@@ -32,7 +30,7 @@ public:
 			angular_velocity = 0;
 			return;
 		}
-		angular_velocity += torque * dt;
+		angular_velocity += inv_inertia*torque * dt;
 	}
 
 	inline void applyForce(float dt) {
@@ -87,8 +85,8 @@ public:
 	float mass = 0.0f;
 	float inv_mass = 0.0f;
 	float restitution = 0.0f;
-	float inertia = 1.0f;
-	float inv_inertia = 1.0f;
+	float inertia = 0.0f;
+	float inv_inertia = 0.0f;
 	float angle = 0.0f;
 	float torque = 0.0f;
 	float angular_velocity = 0.0f;

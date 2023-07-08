@@ -21,6 +21,7 @@ struct Physics {
 		boxRigidBody->angle = 0.0f;
 		boxRigidBody->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody->is_static = true;
+		boxRigidBody->calculateInertia();
 
 		BoxRigidBody * boxRigidBody2 = new BoxRigidBody();
 		boxRigidBody2->size = { 1900.0f, 50.0f };
@@ -28,7 +29,7 @@ struct Physics {
 		boxRigidBody2->angle = 0.0f;
 		boxRigidBody2->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody2->is_static = true;
-
+		boxRigidBody2->calculateInertia();
 
 		BoxRigidBody * slope1 = new BoxRigidBody();
 		slope1->size = { 800.0f, 50.0f };
@@ -36,6 +37,7 @@ struct Physics {
 		slope1->angle = PI / 9.0f;
 		slope1->color = { 0.0f,255.0f * 0.92f,0.0f };
 		slope1->is_static = true;
+		slope1->calculateInertia();
 
 		BoxRigidBody * slope2 = new BoxRigidBody();
 		slope2->size = { 800.0f, 50.0f };
@@ -43,6 +45,7 @@ struct Physics {
 		slope2->angle = -PI / 9.0f;
 		slope2->color = { 0.0f,255.0f * 0.92f,0.0f };
 		slope2->is_static = true;
+		slope2->calculateInertia();
 
 		BoxRigidBody * boxRigidBody4 = new BoxRigidBody();
 		boxRigidBody4->size = { 1920.0f, 50.0f };
@@ -50,6 +53,7 @@ struct Physics {
 		boxRigidBody4->angle = PI / 2.0f;
 		boxRigidBody4->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody4->is_static = true;
+		boxRigidBody4->calculateInertia();
 
 		BoxRigidBody * boxRigidBody5 = new BoxRigidBody();
 		boxRigidBody5->size = { 1920.0f, 50.0f };
@@ -57,7 +61,7 @@ struct Physics {
 		boxRigidBody5->angle = PI / 2.0f;
 		boxRigidBody5->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody5->is_static = true;
-
+		boxRigidBody5->calculateInertia();
 		
 		//BoxRigidBody dynamicBoxRigidBody2({ 300.0f,100.0f }, getRandomSize(), 0.0f, 5, 0.5f, getRainbow(0));
 		//BoxRigidBody dynamicBoxRigidBody3({ 1100.0f,100.0f }, getRandomSize(), 0.0f,6, 0.5f, getRainbow(1));
@@ -67,9 +71,9 @@ struct Physics {
 		dynamicBoxRigidBody3.angular_velocity = getRandomAngularVelocity();*/
 
 		for (int i = 0; i < num_dynamic_objects; i++) {
-			BoxRigidBody * dynamicBoxRigidBody = new BoxRigidBody(getRandomPosition(), getRandomSize(), getRandomAngle(), 0.005, 0.5f, getRainbow(i));
-			dynamicBoxRigidBody->linear_velocity = getRandomVelocity();
-			dynamicBoxRigidBody->angular_velocity = getRandomAngularVelocity();
+			BoxRigidBody * dynamicBoxRigidBody = new BoxRigidBody(getRandomPosition(), getRandomSize(), 0.0f, 0.005, 0.5f, getRainbow(i));
+			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };// getRandomVelocity();
+			dynamicBoxRigidBody->angular_velocity = 0.0f;//getRandomAngularVelocity();
 			mach.addDynamicObject(dynamicBoxRigidBody);
 		}
 
@@ -80,8 +84,8 @@ struct Physics {
 		mach.addDynamicObject(boxRigidBody2);
 		mach.addDynamicObject(boxRigidBody4);
 		mach.addDynamicObject(boxRigidBody5);
-		mach.addDynamicObject(slope1);
-		mach.addDynamicObject(slope2);
+		//mach.addDynamicObject(slope1);
+		//mach.addDynamicObject(slope2);
 
 
 	};
@@ -153,9 +157,9 @@ struct Physics {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !is_button_pressed) {
 			static int i = 0;
 			is_button_pressed = true;
-			BoxRigidBody * dynamicBoxRigidBody = new BoxRigidBody({sf::Mouse::getPosition().x, sf::Mouse::getPosition().y}, getRandomSize(), getRandomAngle(), 0.05f, 0.5f, getRainbow(i++));
-				dynamicBoxRigidBody->linear_velocity = getRandomVelocity();
-				dynamicBoxRigidBody->angular_velocity = getRandomAngularVelocity();
+			BoxRigidBody * dynamicBoxRigidBody = new BoxRigidBody({sf::Mouse::getPosition().x, sf::Mouse::getPosition().y}, getRandomSize(), 0.0f, 10.0f, 0.5f, getRainbow(i++));
+			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
+				dynamicBoxRigidBody->angular_velocity = 0.0f;// getRandomAngularVelocity();
 				dynamicBoxRigidBody->is_static = false;
 				mach.addDynamicObject(dynamicBoxRigidBody);
 		}
@@ -165,7 +169,7 @@ struct Physics {
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C) && !is_key_pressed) {
 			static int j = 0;
-			CircleRigidBody* dynamicBoxRigidBody = new CircleRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, getRandomRadius(), getRandomAngle(), 0.05f, 0.5f, getRainbow(j++));
+			CircleRigidBody* dynamicBoxRigidBody = new CircleRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, getRandomRadius(), getRandomAngle(), 10.0f, 0.5f, getRainbow(j++));
 			dynamicBoxRigidBody->linear_velocity = getRandomVelocity();
 			dynamicBoxRigidBody->angular_velocity = getRandomAngularVelocity();
 			dynamicBoxRigidBody->is_static = false;

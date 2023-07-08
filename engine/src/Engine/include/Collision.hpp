@@ -3,6 +3,7 @@
 #include "Math.hpp"
 #include <vector>
 #include <utility>
+#include <array>
 #include "BoxRigidBody.hpp"
 #include "CircleRigidBody.hpp"
 class Collisions {
@@ -21,9 +22,105 @@ public:
 		glm::vec2 contact1{ 0.0f };
 		glm::vec2 contact2{0.0f};
 		size_t contactCount = 0;
+		float Pn = 0.0f;	// accumulated normal impulse
+		float Pt = 0.0f;	// accumulated tangent impulse
+		float Pnb = 0.0f;	// accumulated normal impulse for position bias
+		float massNormal=0.0f, massTangent=0.0f;
+		float bias = 0.0f;
 		bool intersecting = false;
 
 		CollisionManifold(RigidBody * bodyA, RigidBody * bodyB, bool intersecting = false, float depth = 0.0f, glm::vec2 normal = { 0.0f, 0.0f }, glm::vec2 contact1 = { 0.0f, 0.0f }, glm::vec2 contact2 = { 0.0f, 0.0f }, size_t contactCount = 0) : bodyA(bodyA), bodyB(bodyB), depth(depth), normal(normal), contact1(contact1), contact2(contact2), contactCount(contactCount),intersecting(intersecting) {}
+
+		void preStep(float dt) {
+			const float allowedPenetration = 0.001f;
+			float biasFactor = 0.00f;
+			std::array<glm::vec2, 2> contacts = { contact1, contact2 };
+			for (int i = 0; i < contactCount; i++) {
+				glm::vec2 r1 = contacts[i] - bodyA->position;
+				glm::vec2 r2 = contacts[i] - bodyB->position;
+
+				//precompute normal mass, tangent mass, and bias
+				float rn1 = glm::dot(r1, normal);
+				float rn2 = glm::dot(r2, normal);
+				float kNormal = bodyA->inv_mass + bodyB->inv_mass;
+				kNormal += bodyA->inv_inertia * (glm::dot(r1, r1) - rn1 * rn1) + bodyB->inv_inertia * (glm::dot(r2, r2) - rn2 * rn2);
+				massNormal = 1.0f / kNormal;
+
+				glm::vec2 tangent = { -normal.y, normal.x };
+				float rt1 = glm::dot(r1, tangent);
+				float rt2 = glm::dot(r2, tangent);
+				float kTangent = bodyA->inv_mass + bodyB->inv_mass;
+				kTangent += bodyA->inv_inertia * (glm::dot(r1, r1) - rt1 * rt1) + bodyB->inv_inertia * (glm::dot(r2, r2) - rt2 * rt2);
+				massTangent = 1.0f / kTangent;
+				bias = -biasFactor / dt * std::min(0.0f, (-depth) + allowedPenetration);
+
+				glm::vec2 P = Pn * normal + Pt * tangent;
+				bodyA->linear_velocity -= P * bodyA->inv_mass;
+				bodyA->angular_velocity -= bodyA->inv_inertia * cross(r1, P);
+				bodyB->linear_velocity += P * bodyB->inv_mass;
+				bodyB->angular_velocity += bodyB->inv_inertia * cross(r2, P);
+			}
+		}
+		glm::vec2 _cross(float a, glm::vec2 b) {
+			glm::vec2 result;
+			result.x = -a * b.y;
+			result.y = a * b.x;
+			return result;
+		}
+		void applyImpulse() {
+			std::array<glm::vec2, 2> contacts = { contact1, contact2 };
+			for (int i = 0; i < contactCount; i++) {
+				glm::vec2 r1 = contacts[i] - bodyA->position;
+				glm::vec2 r2 = contacts[i] - bodyB->position;
+
+				//relative velocity at contact
+				glm::vec2 dv = bodyB->linear_velocity + _cross(bodyB->angular_velocity, r2) - bodyA->linear_velocity - _cross(bodyA->angular_velocity, r1);
+
+
+				//compute normal impulse
+				float vn = glm::dot(dv, normal);
+
+				float dPn = massNormal * (-vn + bias );
+
+				
+				float Pn0 = Pn;
+				Pn = std::max(Pn0 + dPn, 0.0f);
+				dPn = Pn - Pn0;
+
+				//apply contact impulse
+				glm::vec2 _Pn = dPn * normal;
+				bodyA->linear_velocity -= _Pn * bodyA->inv_mass;
+				bodyA->angular_velocity -= bodyA->inv_inertia * cross(r1, _Pn);
+				bodyB->linear_velocity += _Pn * bodyB->inv_mass;
+				bodyB->angular_velocity += bodyB->inv_inertia * cross(r2, _Pn);
+
+
+				//relative velocity at contact
+				dv = bodyB->linear_velocity + _cross(bodyB->angular_velocity, r2) - bodyA->linear_velocity - _cross(bodyA->angular_velocity, r1);
+
+				//compute tangent impulse
+				float vt = glm::dot(dv, { -normal.y, normal.x });
+				float dPt = massTangent * (-vt);
+
+				float friction = std::sqrtf(bodyA->static_friction * bodyB->static_friction);
+
+				float maxPt =  friction* Pn;
+				float oldTangentImpulse = Pt;
+				Pt = glm::clamp(oldTangentImpulse + dPt, -maxPt, maxPt);
+				dPt = Pt - oldTangentImpulse;
+
+				
+				//apply contact impulse
+				glm::vec2 _Pt = dPt * glm::vec2{ -normal.y, normal.x };
+
+				bodyA->linear_velocity -= _Pt * bodyA->inv_mass;
+				bodyA->angular_velocity -= bodyA->inv_inertia * cross(r1, _Pt);
+				bodyB->linear_velocity += _Pt * bodyB->inv_mass;
+				bodyB->angular_velocity += bodyB->inv_inertia * cross(r2, _Pt);
+			}
+		
+		}
+
 	};
 public:
 	static IntersectionRecord polygonIntersection(std::vector<glm::vec2> verticesA, std::vector<glm::vec2> verticesB) {

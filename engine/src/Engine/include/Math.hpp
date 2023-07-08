@@ -25,4 +25,9 @@ static glm::vec2 calculatePolygonCentroid(std::vector<glm::vec2>& vertices) {
 	centroid /= glm::vec2(vertices.size(), vertices.size());
 	return centroid;
 }
+
+
+static float cross(glm::vec2 a, glm::vec2 b) {
+	return a.x * b.y - a.y * b.x;
+}
 #endif

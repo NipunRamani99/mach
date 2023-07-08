@@ -50,12 +50,18 @@ public:
 	}
 
 	void update(float dt) {		
+		//dt/=10.0f;
+		broadPhase();
 		applyGravity();
 		applyForce(dt);
+		preStep(dt);
 		for (int i = 0; i < num_iterations; i++) {
-			contactList.clear();
-			narrowPhase();
+			for(size_t j = 0; j < contactList.size(); j++) {
+				contactList[j].applyImpulse();
+				
+			}
 		}
+		contactList.clear();
 		step(dt);
 	}
 
@@ -307,6 +313,27 @@ public:
 	}
 
 
+	void broadPhase() {
+		for (size_t i = 0; i < rigidBodies.size(); i++) {
+			if (rigidBodies[i]->is_static)continue;
+			for (size_t j = 0; j < rigidBodies.size(); j++) {
+				if (i == j) continue;
+				Collisions::IntersectionRecord intersectionRecord = Collisions::findIntersection(rigidBodies[i], rigidBodies[j]);
+				if (intersectionRecord.intersecting) {
+					Collisions::CollisionManifold collisionManifold(rigidBodies[i], rigidBodies[j], intersectionRecord.intersecting, intersectionRecord.depth, intersectionRecord.axis);
+					Collisions::findContactPoint(collisionManifold);
+					contactList.push_back(collisionManifold);
+				}
+			}
+		}
+	}
+
+	void preStep(float dt) {
+		for (size_t i = 0; i < contactList.size(); i++) {
+			contactList[i].preStep(dt);
+		}
+	}
+
 	void checkCollisions() {
 		for (size_t i = 0; i < rigidBodies.size(); i++) {
 			if(rigidBodies[i]->is_static)continue;
@@ -321,21 +348,6 @@ public:
 				}
 			}
 		}
-
-
-		//for (size_t i = 0; i < dynamicObjects.size(); i++) {
-		//	std::vector<glm::vec2> verticesA = dynamicObjects[i].getVertices();
-		//	if (dynamicObjects[i].is_static)continue;
-		//	for (size_t j = i + 1; j < dynamicObjects.size(); j++) {
-		//		std::vector<glm::vec2> verticesB = dynamicObjects[j].getVertices();
-		//		Collisions::IntersectionRecord intersectionRecord = Collisions::polygonIntersection(verticesA, verticesB);
-		//		if (intersectionRecord.intersecting) {
-		//			Collisions::CollisionManifold collisionManifold(dynamicObjects[i], dynamicObjects[j], intersectionRecord.intersecting, intersectionRecord.depth, intersectionRecord.axis);
-		//			Collisions::findPolygonContactPoints(verticesA, verticesB, collisionManifold);
-		//			contactList.push_back(collisionManifold);
-		//		}
-		//	}
-		//}
 	}
 	
 	
