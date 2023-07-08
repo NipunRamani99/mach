@@ -100,9 +100,9 @@ public:
 			inv_inertia = 1.0f / inertia;
 			inv_mass = 1.0f / mass;
 		} else {
-			inertia = 1.0f;
-			inv_inertia = 1.0f;
-			mass = 1.0f;
+			inertia = std::numeric_limits<float>::max();
+			inv_inertia = 0.0f;
+			mass = std::numeric_limits<float>::max();
 			inv_mass = 0.0f;
 		}
 	}

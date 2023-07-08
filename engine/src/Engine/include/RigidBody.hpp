@@ -22,8 +22,9 @@ public:
 			return; 
 		}
 		linear_velocity += force * inv_mass * dt;
-		position += linear_velocity * dt;
-		force = { 0.0f,0.0f };
+		if(glm::dot(linear_velocity, linear_velocity) < 0.001f)
+			linear_velocity = { 0.0f,0.0f };
+	
 	}
 
 	inline void updateAngularVelocity(float dt) {
@@ -31,7 +32,20 @@ public:
 			angular_velocity = 0;
 			return;
 		}
+		angular_velocity += torque * dt;
+	}
+
+	inline void applyForce(float dt) {
+		updateVelocity(dt);
+		updateAngularVelocity(dt);
+	}
+
+	inline void integrate(float dt) {
+		if (is_static) return;
+		position += linear_velocity * dt;
 		angle += angular_velocity * dt;
+		torque = 0.0f;
+		force = { 0.0f,0.0f };
 	}
 
 	float getAngularVelocity() {
@@ -76,9 +90,11 @@ public:
 	float inertia = 1.0f;
 	float inv_inertia = 1.0f;
 	float angle = 0.0f;
+	float torque = 0.0f;
 	float angular_velocity = 0.0f;
 	float static_friction = 0.1f;
 	float dynamic_friction = 0.1f;
+
 	bool is_static = false;
 	Type type = BOX;
 };

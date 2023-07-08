@@ -12,7 +12,7 @@ private:
 	std::vector<BoxRigidBody> dynamicObjects;
 	std::vector<RigidBody*> rigidBodies;
 	std::vector<Collisions::CollisionManifold> contactList;
-	const int num_iterations = 8;
+	const int num_iterations = 10;
 	glm::vec2 gravity = glm::vec2(0.0f,10.0f);
 	float angularAcceleration = 0.0f;
 public:
@@ -49,15 +49,14 @@ public:
 		rigidBodies.push_back(rigidBody);
 	}
 
-	void update(float dt) {
-		dt = dt / num_iterations;
+	void update(float dt) {		
+		applyGravity();
+		applyForce(dt);
 		for (int i = 0; i < num_iterations; i++) {
 			contactList.clear();
-			step(dt);
 			narrowPhase();
-			applyGravity();
-
 		}
+		step(dt);
 	}
 
 	void applyGravity() {
@@ -66,10 +65,15 @@ public:
 		}
 	}
 
-	
+	void applyForce(float dt) {
+		for(RigidBody * rigidBody : rigidBodies) {
+			rigidBody->applyForce(dt);
+		}
+	}
+
 	void step(float dt) {
 		for(RigidBody * rigidBody : rigidBodies) {
-			rigidBody->step(dt);
+			rigidBody->integrate(dt);
 		}
 	}
 
