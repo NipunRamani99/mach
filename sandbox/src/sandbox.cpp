@@ -7,6 +7,8 @@
 #include "physics.hpp"
 #include "rendering/renderer.hpp"
 #include "Constants.hpp"
+#include <include/ContactPoint.hpp>
+
 #include "include/CircleRigidBody.hpp"
 int main() {
     Physics physics;
@@ -73,9 +75,10 @@ int main() {
             renderer.render(window, staticObject);
         }
         for (auto& contactManifold : contactManifolds) {
-            renderer.renderContactPoint(window, contactManifold.contact1);
-            if (contactManifold.contactCount > 0) {
-                renderer.renderContactPoint(window, contactManifold.contact2);
+            for (Collisions::CollisionManifold & cm : contactManifolds) {
+                for (ContactPoint& c : cm.contacts) {
+                    renderer.renderContactPoint(window, c.position);
+                }
             }
         }
 

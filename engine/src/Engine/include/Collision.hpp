@@ -18,50 +18,46 @@ public:
 	struct CollisionManifold {
 		RigidBody * bodyA;
 		RigidBody * bodyB;
-		float depth = 0.0f;
-		glm::vec2 normal{ 0.0f };
-		glm::vec2 contact1{ 0.0f };
-		glm::vec2 contact2{0.0f};
-		size_t contactCount = 0;
-		float Pn = 0.0f;	// accumulated normal impulse
-		float Pt = 0.0f;	// accumulated tangent impulse
-		float Pnb = 0.0f;	// accumulated normal impulse for position bias
-		float massNormal=0.0f, massTangent=0.0f;
-		float bias = 0.0f;
-		bool intersecting = false;
-		std::vector<ContactPoint> contactPoint;
+		std::vector<ContactPoint> contacts;
 
 
-		CollisionManifold(RigidBody * bodyA, RigidBody * bodyB, bool intersecting = false, float depth = 0.0f, glm::vec2 normal = { 0.0f, 0.0f }, glm::vec2 contact1 = { 0.0f, 0.0f }, glm::vec2 contact2 = { 0.0f, 0.0f }, size_t contactCount = 0) : bodyA(bodyA), bodyB(bodyB), depth(depth), normal(normal), contact1(contact1), contact2(contact2), contactCount(contactCount),intersecting(intersecting) {}
+		CollisionManifold(RigidBody* bodyA, RigidBody* bodyB) 
+			:
+			bodyA(bodyA),
+			bodyB(bodyB)
+		{
+			contacts = Collide((BoxRigidBody*)bodyA, (BoxRigidBody*)bodyB);
+		}
 
 		void preStep(float dt) {
 			const float allowedPenetration = 0.01f;
 			float biasFactor = 0.2f;
-			std::array<glm::vec2, 2> contacts = { contact1, contact2 };
-			for (int i = 0; i < contactCount; i++) {
-				glm::vec2 r1 = contacts[i] - bodyA->position;
-				glm::vec2 r2 = contacts[i] - bodyB->position;
+			//std::array<glm::vec2, 2> contacts = { contact1, contact2 };
+			for (int i = 0; i < contacts.size(); i++) {
+				ContactPoint& c = contacts[i];
+				c.r1 = contacts[i].position - bodyA->position;
+				c.r2 = contacts[i].position - bodyB->position;
 
 				//precompute normal mass, tangent mass, and bias
-				float rn1 = glm::dot(r1, normal);
-				float rn2 = glm::dot(r2, normal);
+				float rn1 = glm::dot(c.r1, c.normal);
+				float rn2 = glm::dot(c.r2, c.normal);
 				float kNormal = bodyA->inv_mass + bodyB->inv_mass;
-				kNormal += bodyA->inv_inertia * (glm::dot(r1, r1) - rn1 * rn1) + bodyB->inv_inertia * (glm::dot(r2, r2) - rn2 * rn2);
-				massNormal = 1.0f / kNormal;
+				kNormal += bodyA->inv_inertia * (glm::dot(c.r1, c.r1) - rn1 * rn1) + bodyB->inv_inertia * (glm::dot(c.r2, c.r2) - rn2 * rn2);
+				c.massNormal = 1.0f / kNormal;
 
-				glm::vec2 tangent = { -normal.y, normal.x };
-				float rt1 = glm::dot(r1, tangent);
-				float rt2 = glm::dot(r2, tangent);
+				glm::vec2 tangent = { -c.normal.y, c.normal.x };
+				float rt1 = glm::dot(c.r1, tangent);
+				float rt2 = glm::dot(c.r2, tangent);
 				float kTangent = bodyA->inv_mass + bodyB->inv_mass;
-				kTangent += bodyA->inv_inertia * (glm::dot(r1, r1) - rt1 * rt1) + bodyB->inv_inertia * (glm::dot(r2, r2) - rt2 * rt2);
-				massTangent = 1.0f / kTangent;
-				bias = -biasFactor / dt * std::min(0.0f, (-depth) + allowedPenetration);
+				kTangent += bodyA->inv_inertia * (glm::dot(c.r1, c.r1) - rt1 * rt1) + bodyB->inv_inertia * (glm::dot(c.r2, c.r2) - rt2 * rt2);
+				c.massTangent = 1.0f / kTangent;
+				c.bias = -biasFactor / dt * std::min(0.0f, (c.separation) + allowedPenetration);
 
-				glm::vec2 P = Pn * normal + Pt * tangent;
+				glm::vec2 P = c.Pn * c.normal + c.Pt * tangent;
 				bodyA->linear_velocity -= P * bodyA->inv_mass;
-				bodyA->angular_velocity -= bodyA->inv_inertia * cross(r1, P);
+				bodyA->angular_velocity -= bodyA->inv_inertia * cross(c.r1, P);
 				bodyB->linear_velocity += P * bodyB->inv_mass;
-				bodyB->angular_velocity += bodyB->inv_inertia * cross(r2, P);
+				bodyB->angular_velocity += bodyB->inv_inertia * cross(c.r2, P);
 			}
 		}
 		glm::vec2 _cross(float a, glm::vec2 b) {
@@ -71,55 +67,55 @@ public:
 			return result;
 		}
 		void applyImpulse() {
-			std::array<glm::vec2, 2> contacts = { contact1, contact2 };
-			for (int i = 0; i < contactCount; i++) {
-				glm::vec2 r1 = contacts[i] - bodyA->position;
-				glm::vec2 r2 = contacts[i] - bodyB->position;
+
+			for (int i = 0; i < contacts.size(); i++) {
+				ContactPoint & c = contacts[i];
+				c.r1 = c.position - bodyA->position;
+				c.r2 = c.position - bodyB->position;
 
 				//relative velocity at contact
-				glm::vec2 dv = bodyB->linear_velocity + _cross(bodyB->angular_velocity, r2) - bodyA->linear_velocity - _cross(bodyA->angular_velocity, r1);
+				glm::vec2 dv = bodyB->linear_velocity + _cross(bodyB->angular_velocity, c.r2) - bodyA->linear_velocity - _cross(bodyA->angular_velocity, c.r1);
 
 			
 				//compute normal impulse
-				float vn = glm::dot(dv, normal);
+				float vn = glm::dot(dv, c.normal);
 
-				float dPn = massNormal * (-vn + bias );
+				float dPn = c.massNormal * (-vn + c.bias );
 
 				
-				float Pn0 = Pn;
-				Pn = std::max(Pn0 + dPn, 0.0f);
-				dPn = Pn - Pn0;
+				float Pn0 = c.Pn;
+				c.Pn = std::max(Pn0 + dPn, 0.0f);
+				dPn = c.Pn - Pn0;
 
 				//apply contact impulse
-				glm::vec2 _Pn =  dPn * normal;
+				glm::vec2 _Pn =  dPn * c.normal;
 				bodyA->linear_velocity -= _Pn * bodyA->inv_mass;
-				bodyA->angular_velocity -= bodyA->inv_inertia * cross(r1, _Pn);
+				bodyA->angular_velocity -= bodyA->inv_inertia * cross(c.r1, _Pn);
 				bodyB->linear_velocity += _Pn * bodyB->inv_mass;
-	    		bodyB->angular_velocity += bodyB->inv_inertia * cross(r2, _Pn);
+	    		bodyB->angular_velocity += bodyB->inv_inertia * cross(c.r2, _Pn);
 
 
 				//relative velocity at contact
-				dv = bodyB->linear_velocity + _cross(bodyB->angular_velocity, r2) - bodyA->linear_velocity - _cross(bodyA->angular_velocity, r1);
+				dv = bodyB->linear_velocity + _cross(bodyB->angular_velocity, c.r2) - bodyA->linear_velocity - _cross(bodyA->angular_velocity, c.r1);
 
 				//compute tangent impulse
-				float vt = glm::dot(dv, { -normal.y, normal.x });
-				float dPt = massTangent * (-vt);
+				float vt = glm::dot(dv, { -c.normal.y, c.normal.x });
+				float dPt = c.massTangent * (-vt);
 
 				float friction = std::sqrtf(bodyA->static_friction * bodyB->static_friction);
 
-				float maxPt =  friction* Pn;
-				float oldTangentImpulse = Pt;
-				Pt = glm::clamp(oldTangentImpulse + dPt, -maxPt, maxPt);
-				dPt = Pt - oldTangentImpulse;
+				float maxPt =  friction* c.Pn;
+				float oldTangentImpulse = c.Pt;
+				c.Pt = glm::clamp(oldTangentImpulse + dPt, -maxPt, maxPt);
+				dPt = c.Pt - oldTangentImpulse;
 
 				
 				//apply contact impulse
-				glm::vec2 _Pt = dPt * glm::vec2{ -normal.y, normal.x };
-
+				glm::vec2 _Pt = dPt * glm::vec2{ -c.normal.y, c.normal.x };
 				bodyA->linear_velocity -= _Pt * bodyA->inv_mass;
-				bodyA->angular_velocity -= bodyA->inv_inertia * cross(r1, _Pt);
+				bodyA->angular_velocity -= bodyA->inv_inertia * cross(c.r1, _Pt);
 				bodyB->linear_velocity += _Pt * bodyB->inv_mass;
-				bodyB->angular_velocity += bodyB->inv_inertia * cross(r2, _Pt);
+				bodyB->angular_velocity += bodyB->inv_inertia * cross(c.r2, _Pt);
 			}
 		
 		}
@@ -238,36 +234,36 @@ public:
 	}
 
 	static void findContactPoint(CollisionManifold& collisionManifold) {
-		RigidBody * rigidBodyA = collisionManifold.bodyA;
-		RigidBody * rigidBodyB = collisionManifold.bodyB;
-		if(rigidBodyA->type == RigidBody::Type::CIRCLE && rigidBodyB->type == RigidBody::Type::CIRCLE) {
-			CircleRigidBody* circleRigidBodyA = static_cast<CircleRigidBody*>(rigidBodyA);
-			CircleRigidBody* circleRigidBodyB = static_cast<CircleRigidBody*>(rigidBodyB);
-			glm::vec2 contactPoint = findCirclesContactPoint(*circleRigidBodyA, *circleRigidBodyB);
-			collisionManifold.contact1 = contactPoint;
-			collisionManifold.contactCount = 1;
-		}
-		else if (rigidBodyA->type == RigidBody::Type::CIRCLE && rigidBodyB->type == RigidBody::Type::BOX) {
-			CircleRigidBody* circleRigidBodyA = static_cast<CircleRigidBody*>(rigidBodyA);
-			BoxRigidBody* boxRigidBodyB = static_cast<BoxRigidBody*>(rigidBodyB);
-			glm::vec2 contactPoint = findCirclePolygonContactPoint(*circleRigidBodyA, *boxRigidBodyB);
-			collisionManifold.contact1 = contactPoint;
-			collisionManifold.contactCount = 1;
-		}
-		else if (rigidBodyA->type == RigidBody::Type::BOX && rigidBodyB->type == RigidBody::Type::CIRCLE) {
-			BoxRigidBody* boxRigidBodyA = static_cast<BoxRigidBody*>(rigidBodyA);
-			CircleRigidBody* circleRigidBodyB = static_cast<CircleRigidBody*>(rigidBodyB);
-			glm::vec2 contactPoint = findCirclePolygonContactPoint(*circleRigidBodyB, *boxRigidBodyA);
-			collisionManifold.contact1 = contactPoint;
-			collisionManifold.contactCount = 1;
-		}
-		else if (rigidBodyA->type == RigidBody::Type::BOX && rigidBodyB->type == RigidBody::Type::BOX) {
-			BoxRigidBody* boxRigidBodyA = static_cast<BoxRigidBody*>(rigidBodyA);
-			BoxRigidBody* boxRigidBodyB = static_cast<BoxRigidBody*>(rigidBodyB);
-			std::vector<glm::vec2> verticesA = boxRigidBodyA->getVertices();
-			std::vector<glm::vec2> verticesB = boxRigidBodyB->getVertices();
-			findPolygonContactPoints(verticesA, verticesB, collisionManifold);
-		}
+		//RigidBody * rigidBodyA = collisionManifold.bodyA;
+		//RigidBody * rigidBodyB = collisionManifold.bodyB;
+		//if(rigidBodyA->type == RigidBody::Type::CIRCLE && rigidBodyB->type == RigidBody::Type::CIRCLE) {
+		//	CircleRigidBody* circleRigidBodyA = static_cast<CircleRigidBody*>(rigidBodyA);
+		//	CircleRigidBody* circleRigidBodyB = static_cast<CircleRigidBody*>(rigidBodyB);
+		//	glm::vec2 contactPoint = findCirclesContactPoint(*circleRigidBodyA, *circleRigidBodyB);
+		//	collisionManifold.contact1 = contactPoint;
+		//	collisionManifold.contactCount = 1;
+		//}
+		//else if (rigidBodyA->type == RigidBody::Type::CIRCLE && rigidBodyB->type == RigidBody::Type::BOX) {
+		//	CircleRigidBody* circleRigidBodyA = static_cast<CircleRigidBody*>(rigidBodyA);
+		//	BoxRigidBody* boxRigidBodyB = static_cast<BoxRigidBody*>(rigidBodyB);
+		//	glm::vec2 contactPoint = findCirclePolygonContactPoint(*circleRigidBodyA, *boxRigidBodyB);
+		//	collisionManifold.contact1 = contactPoint;
+		//	collisionManifold.contactCount = 1;
+		//}
+		//else if (rigidBodyA->type == RigidBody::Type::BOX && rigidBodyB->type == RigidBody::Type::CIRCLE) {
+		//	BoxRigidBody* boxRigidBodyA = static_cast<BoxRigidBody*>(rigidBodyA);
+		//	CircleRigidBody* circleRigidBodyB = static_cast<CircleRigidBody*>(rigidBodyB);
+		//	glm::vec2 contactPoint = findCirclePolygonContactPoint(*circleRigidBodyB, *boxRigidBodyA);
+		//	collisionManifold.contact1 = contactPoint;
+		//	collisionManifold.contactCount = 1;
+		//}
+		//else if (rigidBodyA->type == RigidBody::Type::BOX && rigidBodyB->type == RigidBody::Type::BOX) {
+		//	BoxRigidBody* boxRigidBodyA = static_cast<BoxRigidBody*>(rigidBodyA);
+		//	BoxRigidBody* boxRigidBodyB = static_cast<BoxRigidBody*>(rigidBodyB);
+		//	std::vector<glm::vec2> verticesA = boxRigidBodyA->getVertices();
+		//	std::vector<glm::vec2> verticesB = boxRigidBodyB->getVertices();
+		//	findPolygonContactPoints(verticesA, verticesB, collisionManifold);
+		//}
 	}
 
 	static std::pair<float, glm::vec2> pointSegmentDistance(glm::vec2 p, glm::vec2 a, glm::vec2 b) {
@@ -330,9 +326,9 @@ public:
 				}
 			}
 		}
-		collisionManifold.contact1 = contactPoint1;
-		collisionManifold.contact2 = contactPoint2;
-		collisionManifold.contactCount = contactPoints;
+		//collisionManifold.contact1 = contactPoint1;
+		//collisionManifold.contact2 = contactPoint2;
+		//collisionManifold.contactCount = contactPoints;
 	}
 
 	static std::tuple<bool,float, glm::vec2> circleIntersection(CircleRigidBody& bodyA, CircleRigidBody& bodyB) {

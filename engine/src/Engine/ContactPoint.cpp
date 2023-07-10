@@ -134,7 +134,7 @@ static void ComputeIncidentEdge(ClipVertex c[2], const glm::vec2& h, const glm::
 
 
 
-static std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
+std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 
 	//setup
 	glm::vec2 hA = 0.5f * bodyA->size;

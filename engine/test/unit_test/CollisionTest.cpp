@@ -56,19 +56,18 @@ TEST(CollisonTest, IntersectingSquare) {
 	};
 	BoxRigidBody boxA = BoxRigidBody();
 	boxA.size = glm::vec2(70.0f, 70.0f);
+	boxA.angle = 0.0f;
 	boxA.position = glm::vec2(600.000122f, 915.217041f);
 
 	BoxRigidBody boxB = BoxRigidBody();
 	boxB.size = { 1900.0f, 100.0f };
+	boxB.angle = 0.0f;
 	boxB.position = { 970.0f , 1000.0f };
 
 	verticesA = boxA.getVertices();
 	verticesB = boxB.getVertices();
 
-	Collisions::IntersectionRecord intersecting = Collisions::polygonIntersection(verticesA, verticesB);
-	Collisions::CollisionManifold manifold(&boxA, &boxB, intersecting.intersecting, intersecting.depth,intersecting.axis);
-	
-	Collisions::findContactPoint(manifold);
+	Collisions::CollisionManifold cm1(&boxA, &boxB);
 
-	ASSERT_EQ(manifold.contactCount, 2);
+	ASSERT_EQ(cm1.contacts.size(), 2);
 }

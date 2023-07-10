@@ -21,7 +21,7 @@ public:
 			linear_velocity = { 0, 0 };
 			return;
 		}
-		linear_velocity += (glm::vec2{ 0.0f,10.0f } + force * inv_mass )*dt;
+		linear_velocity += (glm::vec2{ 0.0f, 10.0f } + force * inv_mass )*dt;
 	
 	}
 

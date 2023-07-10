@@ -38,5 +38,5 @@ public:
 	FeaturePair feature;
 };
 
-static std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB);
+std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB);
 #endif

@@ -4,7 +4,6 @@
 #include <include/CircleRigidBody.hpp>
 #include <SFML/Graphics.hpp>
 #include <filesystem>
-
 class Renderer {
 public:
 	Renderer() {}
