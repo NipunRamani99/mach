@@ -6,6 +6,7 @@
 #include <array>
 #include "BoxRigidBody.hpp"
 #include "CircleRigidBody.hpp"
+#include "ContactPoint.hpp"
 class Collisions {
 public:
 	struct IntersectionRecord {
@@ -28,12 +29,14 @@ public:
 		float massNormal=0.0f, massTangent=0.0f;
 		float bias = 0.0f;
 		bool intersecting = false;
+		std::vector<ContactPoint> contactPoint;
+
 
 		CollisionManifold(RigidBody * bodyA, RigidBody * bodyB, bool intersecting = false, float depth = 0.0f, glm::vec2 normal = { 0.0f, 0.0f }, glm::vec2 contact1 = { 0.0f, 0.0f }, glm::vec2 contact2 = { 0.0f, 0.0f }, size_t contactCount = 0) : bodyA(bodyA), bodyB(bodyB), depth(depth), normal(normal), contact1(contact1), contact2(contact2), contactCount(contactCount),intersecting(intersecting) {}
 
 		void preStep(float dt) {
-			const float allowedPenetration = 0.001f;
-			float biasFactor = 0.00f;
+			const float allowedPenetration = 0.01f;
+			float biasFactor = 0.2f;
 			std::array<glm::vec2, 2> contacts = { contact1, contact2 };
 			for (int i = 0; i < contactCount; i++) {
 				glm::vec2 r1 = contacts[i] - bodyA->position;
@@ -76,7 +79,7 @@ public:
 				//relative velocity at contact
 				glm::vec2 dv = bodyB->linear_velocity + _cross(bodyB->angular_velocity, r2) - bodyA->linear_velocity - _cross(bodyA->angular_velocity, r1);
 
-
+			
 				//compute normal impulse
 				float vn = glm::dot(dv, normal);
 
@@ -88,11 +91,11 @@ public:
 				dPn = Pn - Pn0;
 
 				//apply contact impulse
-				glm::vec2 _Pn = dPn * normal;
+				glm::vec2 _Pn =  dPn * normal;
 				bodyA->linear_velocity -= _Pn * bodyA->inv_mass;
 				bodyA->angular_velocity -= bodyA->inv_inertia * cross(r1, _Pn);
 				bodyB->linear_velocity += _Pn * bodyB->inv_mass;
-				bodyB->angular_velocity += bodyB->inv_inertia * cross(r2, _Pn);
+	    		bodyB->angular_velocity += bodyB->inv_inertia * cross(r2, _Pn);
 
 
 				//relative velocity at contact
@@ -300,7 +303,7 @@ public:
 				glm::vec2 va = verticesB[j];
 				glm::vec2 vb = verticesB[(j + 1) % verticesB.size()];
 				auto [distance, contact] = pointSegmentDistance(p, va, vb);
-				if (std::abs(distance - minDistance) < 0.0001 && contactPoint1 != contact) {
+				if (std::abs(distance - minDistance) < 0.1f && contactPoint1 != contact) {
 					contactPoint2 = contact;
 					contactPoints = 2;
 				}else if(distance < minDistance) {
@@ -316,7 +319,7 @@ public:
 				glm::vec2 va = verticesA[j];
 				glm::vec2 vb = verticesA[(j + 1) % verticesA.size()];
 				auto [distance, contact] = pointSegmentDistance(p, va, vb);
-				if (std::abs(distance - minDistance) < 0.00001 && contactPoint1 != contact) {
+				if (std::abs(distance - minDistance) < 0.1f && contactPoint1 != contact) {
 					contactPoint2 = contact;
 					contactPoints = 2;
 				}

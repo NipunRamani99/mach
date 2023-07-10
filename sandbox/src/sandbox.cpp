@@ -19,7 +19,9 @@ int main() {
     ImGui::SFML::Init(window);
     float dt = 1 / 60.0f;
     sf::Clock deltaClock;
-
+    bool isSpacePressed = false;
+    bool isZPressed = false;
+    bool runSim = false;
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -33,8 +35,20 @@ int main() {
         ImGui::SFML::Update(window, deltaClock.restart());
 
         ImGui::Begin("Mach Sandbox");
-        
-        physics.update(dt);
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z) && !isZPressed) {
+			runSim = !runSim;
+			isZPressed = true;
+		}
+        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
+            isZPressed = false;
+        }
+        if((sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !isSpacePressed )|| runSim ) {
+            physics.update(dt);
+            isSpacePressed = true;
+        }
+        if(!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
+			isSpacePressed = false;
+		}
         window.clear(clearBackground);
         auto & contactManifolds = physics.mach.getContactList();
         auto & staticObjects = physics.mach.getStaticObjects();
@@ -58,12 +72,12 @@ int main() {
         for (auto& staticObject : staticObjects) {
             renderer.render(window, staticObject);
         }
-        /*for (auto& contactManifold : contactManifolds) {
+        for (auto& contactManifold : contactManifolds) {
             renderer.renderContactPoint(window, contactManifold.contact1);
-            if (contactManifold.contactCount > 1) {
+            if (contactManifold.contactCount > 0) {
                 renderer.renderContactPoint(window, contactManifold.contact2);
             }
-        }*/
+        }
 
 
         ImGui::End();

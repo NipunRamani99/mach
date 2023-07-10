@@ -17,11 +17,11 @@ public:
 	}
 	
 	inline void updateVelocity(float dt) {
-		if (is_static) { 
-			linear_velocity = { 0, 0};
-			return; 
+		if (is_static) {
+			linear_velocity = { 0, 0 };
+			return;
 		}
-		linear_velocity += force * inv_mass * dt;
+		linear_velocity += (glm::vec2{ 0.0f,10.0f } + force * inv_mass )*dt;
 	
 	}
 

@@ -5,6 +5,7 @@
 #include <vector>
 #include <array>
 #include "Collision.hpp"
+#include "ContactPoint.hpp"
 
 class Mach {
 private:
@@ -15,6 +16,7 @@ private:
 	const int num_iterations = 10;
 	glm::vec2 gravity = glm::vec2(0.0f,10.0f);
 	float angularAcceleration = 0.0f;
+	long long unsigned int iterationCount = 0;
 public:
 	Mach() {
 
@@ -51,6 +53,8 @@ public:
 
 	void update(float dt) {		
 		//dt/=10.0f;
+
+		contactList.clear();
 		broadPhase();
 		applyGravity();
 		applyForce(dt);
@@ -58,10 +62,9 @@ public:
 		for (int i = 0; i < num_iterations; i++) {
 			for(size_t j = 0; j < contactList.size(); j++) {
 				contactList[j].applyImpulse();
-				
+				iterationCount++;
 			}
 		}
-		contactList.clear();
 		step(dt);
 	}
 

@@ -77,6 +77,12 @@ struct Physics {
 			mach.addDynamicObject(dynamicBoxRigidBody);
 		}
 
+		BoxRigidBody* dynamicBoxRigidBody = new BoxRigidBody({600.0f,900.0f}, getRandomSize(), 0.0f, 4.0f, 0.5f, getRainbow(0));
+		dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };// getRandomVelocity();
+		dynamicBoxRigidBody->angular_velocity = 0.0f;//getRandomAngularVelocity();
+		dynamicBoxRigidBody->angle = 0.0f;
+		mach.addDynamicObject(dynamicBoxRigidBody);
+
 		//mach.addDynamicObject(dynamicBoxRigidBody2);
 		//mach.addDynamicObject(dynamicBoxRigidBody3);
 		mach.addDynamicObject(boxRigidBody);
@@ -84,8 +90,8 @@ struct Physics {
 		mach.addDynamicObject(boxRigidBody2);
 		mach.addDynamicObject(boxRigidBody4);
 		mach.addDynamicObject(boxRigidBody5);
-		//mach.addDynamicObject(slope1);
-		//mach.addDynamicObject(slope2);
+		mach.addDynamicObject(slope1);
+		mach.addDynamicObject(slope2);
 
 
 	};
@@ -153,7 +159,7 @@ struct Physics {
 		//if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
 		//	mach.getDynamicObjects()[0].move({ 10.0f,0.0f });
 		//}
-		
+		//
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !is_button_pressed) {
 			static int i = 0;
 			is_button_pressed = true;
