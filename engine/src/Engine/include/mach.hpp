@@ -53,16 +53,21 @@ public:
 
 	void update(float dt) {		
 		//dt/=10.0f;
-
+		
 		contactList.clear();
 		broadPhase();
 		applyGravity();
 		applyForce(dt);
 		preStep(dt);
 		for (int i = 0; i < num_iterations; i++) {
-			for(size_t j = 0; j < contactList.size(); j++) {
+			size_t list_size = contactList.size();
+			if (list_size > 1) {
+				//std::cout << " yolo ";
+			}
+			for(size_t j = 0; j < list_size; j++) {
 				contactList[j].applyImpulse();
 				iterationCount++;
+				
 			}
 		}
 		step(dt);
@@ -322,6 +327,14 @@ public:
 			for (size_t j = 0; j < rigidBodies.size(); j++) {
 				if (i == j) continue;
 				if (rigidBodies[i]->type == RigidBody::Type::BOX && rigidBodies[j]->type == RigidBody::Type::BOX) {
+					bool found = false;
+					for (Collisions::CollisionManifold & manifold : contactList) {
+						if (manifold.bodyA == rigidBodies[i] && manifold.bodyB == rigidBodies[j] || manifold.bodyB == rigidBodies[i] && manifold.bodyA == rigidBodies[j]) {
+							found = true;
+							break;
+						}
+					}
+					if (found) continue;
 					Collisions::CollisionManifold collisionManifold(rigidBodies[i], rigidBodies[j]);
 						if (collisionManifold.contacts.size() > 0) {
 							contactList.push_back(collisionManifold);
@@ -332,6 +345,9 @@ public:
 	}
 
 	void preStep(float dt) {
+		if (contactList.size() > 0) {
+			//std::cout << "yolo2";
+		}
 		for (size_t i = 0; i < contactList.size(); i++) {
 			contactList[i].preStep(dt);
 		}

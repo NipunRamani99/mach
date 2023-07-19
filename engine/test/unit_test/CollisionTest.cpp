@@ -71,3 +71,44 @@ TEST(CollisonTest, IntersectingSquare) {
 
 	ASSERT_EQ(cm1.contacts.size(), 2);
 }
+
+TEST(CollisionTest, CollisionPoint) {
+	//BoxRigidBody boxA = BoxRigidBody();
+	//boxA.size = glm::vec2(70,70);
+	//boxA.angle = 0.0f;
+	//boxA.position = glm::vec2(600.0f,915.010132f);
+
+	//BoxRigidBody boxB = BoxRigidBody();
+	//boxB.size = glm::vec2(70, 70);
+	//boxB.angle = 0.0f;
+	//boxB.position = glm::vec2(635.0f, 845.433472f);
+
+	BoxRigidBody boxA = BoxRigidBody();
+	boxA.size = glm::vec2(70, 70);
+	boxA.angle = 0.0379352309;
+	boxA.position = glm::vec2(599.160339, 904.810547);
+
+	BoxRigidBody boxB = BoxRigidBody();
+	boxB.size = glm::vec2(70, 70);
+	boxB.angle = 0.0380495787;
+	boxB.position = glm::vec2(628.335876, 876.075806);
+
+	
+	std::vector<ContactPoint> contactPoints = Collide(&boxA, &boxB);
+
+	/*ASSERT_LE(std::abs(contactPoints[0].x - 3.9f), 0.0001f);
+	ASSERT_LE(std::abs(contactPoints[0].y - 3), 0.0001f);
+	ASSERT_LE(std::abs(contactPoints[1].x - 3.9f), 0.0001f);
+	ASSERT_LE(std::abs(contactPoints[1].y - 1), 0.0001f);*/
+
+	const float eps = 0.0001f;
+
+	ASSERT_EQ(contactPoints.size(), 2);
+	ASSERT_LE(std::abs(contactPoints[0].normal.x - 0.999281), 0.0001f);
+	ASSERT_LE(std::abs(contactPoints[0].normal.y - 0.0379261), 0.0001f);
+
+
+	//ASSERT_LE(std::abs(contactPoints[0].normal.x ), eps);
+	//ASSERT_LE(std::abs(contactPoints[0].normal.y + 1.0f), eps);
+	//ASSERT_LE(std::abs(contactPoints[0].separation + 0.414214), eps);
+}

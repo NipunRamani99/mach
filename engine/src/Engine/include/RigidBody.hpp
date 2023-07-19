@@ -3,12 +3,33 @@
 #include <glm/glm.hpp>
 class RigidBody
 {
+private:
 public:
 	enum Type {
 		BOX,
 		CIRCLE
 	};
 
+
+	glm::vec2 position = { 0.0f, 0.0f };
+	glm::vec2 linear_velocity = { 0.0f, 0.0f };
+	glm::vec3 color = { 1.0f,1.0f,1.0f };
+	glm::vec2 force = { 0.0f,0.0f };
+	float mass = 0.0f;
+	float inv_mass = 0.0f;
+	float restitution = 0.0f;
+	float inertia = 0.0f;
+	float inv_inertia = 0.0f;
+	float angle = 0.0f;
+	float torque = 0.0f;
+	float angular_velocity = 0.0f;
+	float static_friction = 0.1f;
+	float dynamic_friction = 0.1f;
+	bool is_static = false;
+	uint32_t id = 0;
+	Type type = BOX;
+	
+	
 	virtual ~RigidBody() {}
 
 	inline void step(float dt) {
@@ -21,7 +42,7 @@ public:
 			linear_velocity = { 0, 0 };
 			return;
 		}
-		linear_velocity += (glm::vec2{ 0.0f, 10.0f } + force * inv_mass )*dt;
+		linear_velocity += ( force * inv_mass )*dt;
 	
 	}
 
@@ -75,25 +96,5 @@ public:
 	}
 
 	virtual void calculateInertia() = 0;
-
-
-
-	glm::vec2 position = { 0.0f, 0.0f };
-	glm::vec2 linear_velocity = { 0.0f, 0.0f };
-	glm::vec3 color = { 1.0f,1.0f,1.0f };
-	glm::vec2 force = { 0.0f,0.0f };
-	float mass = 0.0f;
-	float inv_mass = 0.0f;
-	float restitution = 0.0f;
-	float inertia = 0.0f;
-	float inv_inertia = 0.0f;
-	float angle = 0.0f;
-	float torque = 0.0f;
-	float angular_velocity = 0.0f;
-	float static_friction = 0.1f;
-	float dynamic_friction = 0.1f;
-
-	bool is_static = false;
-	Type type = BOX;
 };
 #endif // !__RIGID_BODY_HPP__

@@ -18,23 +18,20 @@ union FeaturePair
 	int value;
 };
 
-
 /*
 * Taken from Box2D Lite
 */
 struct ContactPoint {
 public:
-	RigidBody* body1;
-	RigidBody* body2;
 	glm::vec2 position;
 	glm::vec2 normal;
 	glm::vec2 r1, r2;
 	float separation;
-	float Pn;        // accumulated normal impulse
-	float Pt;        // accumulated tangent impulse
-	float Pnb;       // accumulated normal impulse for position bias
-	float massNormal, massTangent;
-	float bias;
+	float Pn = 0.0f;        // accumulated normal impulse
+	float Pt = 0.0f;        // accumulated tangent impulse
+	float Pnb = 0.0f;       // accumulated normal impulse for position bias
+	float massNormal = 0.0f, massTangent = 0.0f;
+	float bias = 0.0f;
 	FeaturePair feature;
 };
 

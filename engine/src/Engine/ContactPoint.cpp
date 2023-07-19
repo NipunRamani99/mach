@@ -84,7 +84,7 @@ static void ComputeIncidentEdge(ClipVertex c[2], const glm::vec2& h, const glm::
 	const glm::mat2& rot, const glm::vec2& normal)
 {
 	glm::mat2 rotT = glm::transpose(rot);
-	glm::vec2 n = -(rotT * normal);
+	glm::vec2 n = -(normal * rotT);
 	glm::vec2 nAbs(glm::abs(n.x), glm::abs(n.y));
 
 	if (nAbs.x > nAbs.y) {
@@ -128,8 +128,8 @@ static void ComputeIncidentEdge(ClipVertex c[2], const glm::vec2& h, const glm::
 
 		}
 	}
-	c[0].v = pos + rot * c[0].v;
-	c[1].v = pos + rot * c[1].v;
+	c[0].v = pos + c[0].v * rot;
+	c[1].v = pos + c[1].v * rot;
 }
 
 
@@ -150,23 +150,26 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	glm::mat2 rotBT = glm::transpose(rotB);
 
 	glm::vec2 dp = pB - pA;
-	glm::vec2 dA = rotAT * dp;
-	glm::vec2 dB = rotBT * dp;
+	glm::vec2 dA = dp * rotAT ;
+	glm::vec2 dB = dp * rotBT;
 
 	glm::mat2 C = rotAT * rotB;
 	glm::mat2 absC = abs(C);
 	glm::mat2 absCT = glm::transpose(absC);
 
 	//box A faces
-	glm::vec2 faceA = glm::abs(dA) - hA - absC * hB;
+	glm::vec2 faceA = glm::abs(dA) - hA - hB * absC;
 	if (faceA.x > 0.0f || faceA.y > 0.0f) {
 		return std::vector<ContactPoint>();
 	}
-	//box A faces
-	glm::vec2 faceB = glm::abs(dB) - hB - absC * hA;
+
+	//box B faces
+	glm::vec2 faceB = glm::abs(dB) - hB - hA * absCT;
 	if (faceB.x > 0.0f || faceB.y > 0.0f) {
 		return std::vector<ContactPoint>();
 	}
+	//return { faceA, faceB };
+
 
 	//find best axis
 	Axis axis;
@@ -176,7 +179,9 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	//box A faces
 	axis = FACE_A_X;
 	separation = faceA.x;
-	normal = dA.x > 0.0f ? rotA[0] : -rotA[0];
+		normal = dA.x > 0.0f ? rotAT[0] : -rotAT[0];
+	
+	//return { normal, {0.0f,0.0f} };
 
 	float relativeTol = 0.95f;
 	const float absoluteTol = 0.01f;
@@ -184,20 +189,22 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
 		axis = FACE_A_Y;
 		separation = faceA.y;
-		normal = dA.y > 0.0f ? rotA[1] : -rotA[1];
+		normal = dA.y > 0.0f ? rotAT[1] : -rotAT[1];
 	}
 
 	//box B faces
 	if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
 		axis = FACE_B_X;
 		separation = faceB.x;
-		normal = dB.x > 0.0f ? rotB[0] : -rotB[0];
+		normal = dB.x > 0.0f ? rotBT[0] : -rotBT[0];
 	}
 	if (faceB.y > relativeTol * separation + absoluteTol * hB.y) {
 		axis = FACE_B_Y;
 		separation = faceB.y;
-		normal = dB.y > 0.0f ? rotB[1] : -rotB[1];
+		normal = dB.y > 0.0f ? rotBT[1] : -rotBT[1];
 	}
+
+//	return { normal, {0.0f,0.0f} };
 
 	//setup clipping plane data based on the separating axis
 	glm::vec2 frontNormal, sideNormal;
@@ -211,32 +218,32 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	{
 		frontNormal = normal;
 		front = glm::dot(pA, frontNormal) + hA.x;
-		sideNormal = rotA[1];
+		sideNormal = rotAT[1];
 		float side = glm::dot(pA, sideNormal);
 		negSide = -side + hA.y;
 		posSide = side + hA.y;
 		negEdge = EDGE3;
 		posEdge = EDGE1;
-		ComputeIncidentEdge(incidentEdge, hB, pB, rotB, sideNormal);
+		ComputeIncidentEdge(incidentEdge, hB, pB, rotB, frontNormal);
 
 		break;
 	}
 	case FACE_A_Y: {
 		frontNormal = normal;
 		front = glm::dot(pA, frontNormal) + hA.y;
-		sideNormal = rotA[0];
+		sideNormal = rotAT[0];
 		float side = glm::dot(pA, sideNormal);
 		negSide = -side + hA.x;
 		posSide = side + hA.x;
 		negEdge = EDGE2;
 		posEdge = EDGE4;
-		ComputeIncidentEdge(incidentEdge, hB, pB, rotB, sideNormal);
+		ComputeIncidentEdge(incidentEdge, hB, pB, rotB, frontNormal);
 		break;
 	}
 	case FACE_B_X: {
 		frontNormal = -normal;
 		front = glm::dot(pB, frontNormal) + hB.x;
-		sideNormal = rotB[0];
+		sideNormal = rotBT[1];
 		float side = glm::dot(pB, sideNormal);
 		negSide = -side + hB.y;
 		posSide = side + hB.y;
@@ -248,7 +255,7 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	case FACE_B_Y: {
 		frontNormal = -normal;
 		front = glm::dot(pB, frontNormal) + hB.y;
-		sideNormal = rotB[1];
+		sideNormal = rotBT[0];
 		float side = glm::dot(pB, sideNormal);
 		negSide = -side + hB.x;
 		posSide = side + hB.x;
@@ -264,6 +271,8 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	int np; 
 
 	np = clipSegmentToLine(clipPoints1, incidentEdge, -sideNormal, negSide, negEdge);
+
+//	return {incidentEdge[0].v, incidentEdge[1].v};
 
 	if (np < 2)
 		return {};

@@ -92,8 +92,6 @@ struct Physics {
 		mach.addDynamicObject(boxRigidBody5);
 		mach.addDynamicObject(slope1);
 		mach.addDynamicObject(slope2);
-
-
 	};
 	
 	float getRandomAngle() {
