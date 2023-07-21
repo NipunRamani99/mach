@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include "include/Collision.hpp"
+#include "include/RigidBody.hpp"
+#include "include/Joint.hpp"
 
 /*
 * Create 2 overlapping polygons and check if they intersect using Collisions.intersectPolygon
@@ -7,7 +9,7 @@
 * Triangle A: (0.0f, 0.0f), (0.5f, 1.0f), (1.0f,0.0f)
 * Triangle B: (0.5f,0.5f), (2.0f,2.0f),  (2.0f,0.0f)
 */
-TEST(CollisonTest, IntersectingPolygons) {
+TEST(CollisionTest, IntersectingPolygons) {
 	std::vector<glm::vec2> verticesA = {
 		{0.0f, 0.0f},
 		{0.5f, 1.0f},
@@ -24,7 +26,7 @@ TEST(CollisonTest, IntersectingPolygons) {
 	ASSERT_TRUE(intersecting.intersecting);
 }
 
-TEST(CollisonTest, NonIntersectingPolygons) {
+TEST(CollisionTest, NonIntersectingPolygons) {
 	std::vector<glm::vec2> verticesA = {
 		{0.0f, 0.0f},
 		{0.5f, 1.0f},
@@ -41,7 +43,7 @@ TEST(CollisonTest, NonIntersectingPolygons) {
 	ASSERT_FALSE(intersecting.intersecting);
 }
 
-TEST(CollisonTest, IntersectingSquare) {
+TEST(CollisionTest, IntersectingSquare) {
 	std::vector<glm::vec2> verticesA = {
 		{0.0f, 0.0f},
 		{0.0f, 1.0f},
@@ -111,4 +113,32 @@ TEST(CollisionTest, CollisionPoint) {
 	//ASSERT_LE(std::abs(contactPoints[0].normal.x ), eps);
 	//ASSERT_LE(std::abs(contactPoints[0].normal.y + 1.0f), eps);
 	//ASSERT_LE(std::abs(contactPoints[0].separation + 0.414214), eps);
+}
+
+TEST(CollisionTest, JointTest) {
+	BoxRigidBody bodyA = BoxRigidBody({ 0.0f,0.0f }, { 1.0f, 1.0f }, 0.0f, FLT_MAX, 0.0f, { 1.0f,1.0f,1.0f }, false);
+	BoxRigidBody bodyB = BoxRigidBody({ 5.0f,0.0f }, { 1.0f, 1.0f }, 0.0f, 1.0f, 0.0f, { 1.0f,1.0f,1.0f }, false);
+	bodyA.linear_velocity = { -1.0f, 0.0f };
+	bodyA.angular_velocity = 0.0f;
+	bodyB.linear_velocity = { 1.0f,0.0f };
+	bodyB.angular_velocity = 0.0f;
+	bodyA.inv_mass = 0.0f;
+	bodyA.inv_inertia = 0.0f;
+	bodyA.inertia = FLT_MAX;
+
+	Joint joint(&bodyA, &bodyB, bodyA.position);
+	float inv_dt = 60.0f;
+	joint.preStep(inv_dt);
+	joint.applyImpulse();
+
+	ASSERT_FLOAT_EQ(joint.P.x, -2.0f);
+	ASSERT_FLOAT_EQ(joint.P.y, 0.0f);
+
+	ASSERT_FLOAT_EQ(bodyA.linear_velocity.x, -1.0f);
+	ASSERT_FLOAT_EQ(bodyA.linear_velocity.y, 0.0f);
+	ASSERT_FLOAT_EQ(bodyA.angular_velocity, 0.0f);
+
+	ASSERT_FLOAT_EQ(bodyB.linear_velocity.x, -1.0f);
+	ASSERT_FLOAT_EQ(bodyB.linear_velocity.y, 0.0f);
+	ASSERT_FLOAT_EQ(bodyB.angular_velocity, 0.0f);
 }

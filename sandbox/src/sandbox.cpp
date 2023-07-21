@@ -56,6 +56,7 @@ int main() {
         auto & staticObjects = physics.mach.getStaticObjects();
         auto & dynamicObjects = physics.mach.getDynamicObjects();
         auto & rigidBodies = physics.mach.getRigidBodies();
+        auto& joints = physics.mach.getJoints();
         for (size_t i = 0; i < rigidBodies.size(); i++) {
             
             auto& dynamicObject = *rigidBodies[i];
@@ -82,6 +83,9 @@ int main() {
             }
         }
 
+        for (Joint* j : joints) {
+            renderer.renderJoint(window, j);
+        }
 
         ImGui::End();
 

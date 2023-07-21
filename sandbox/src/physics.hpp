@@ -1,6 +1,7 @@
 #ifndef __PHYSICS_HPP__
 #define __PHYSICS_HPP__
 #include <include/mach.hpp>
+#include <include/Joint.hpp>
 #include "Constants.hpp"
 #include <random>
 #include <filesystem>
@@ -77,12 +78,55 @@ struct Physics {
 			mach.addDynamicObject(dynamicBoxRigidBody);
 		}
 
-		BoxRigidBody* dynamicBoxRigidBody = new BoxRigidBody({600.0f,900.0f}, getRandomSize(), 0.0f, 4.0f, 0.5f, getRainbow(0));
-		dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };// getRandomVelocity();
-		dynamicBoxRigidBody->angular_velocity = 0.0f;//getRandomAngularVelocity();
-		dynamicBoxRigidBody->angle = 0.0f;
-		mach.addDynamicObject(dynamicBoxRigidBody);
+		glm::vec2 hScreenRes = { SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f };
+		hScreenRes -= glm::vec2(0, 300);
+		glm::vec2 boxPos1 = hScreenRes + glm::vec2{-100.0f, 0.0f};
+		//BoxRigidBody* dynamicBoxRigidBody = new BoxRigidBody(boxPos1, { 75.0f, 25.0f }, 0.0f, 4.0f, 0.5f, getRainbow(0));
+		//dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };// getRandomVelocity();
+		//dynamicBoxRigidBody->angular_velocity = 0.0f;//getRandomAngularVelocity();
+		//dynamicBoxRigidBody->angle = 0.0f;
+		//mach.addDynamicObject(dynamicBoxRigidBody);
 
+		//BoxRigidBody* dynamicBoxRigidBody2 = new BoxRigidBody(boxPos1 + glm::vec2{-40.0f, 0.0f}, { 20.0f, 20.0f }, 0.0f, 4.0f, 0.5f, getRainbow(0));
+		//dynamicBoxRigidBody2->linear_velocity = { 0.0f, 0.0f };// getRandomVelocity();
+		//dynamicBoxRigidBody2->angular_velocity = 0.0f;//getRandomAngularVelocity();
+		//dynamicBoxRigidBody2->angle = 0.0f;
+		//mach.addDynamicObject(dynamicBoxRigidBody2);
+
+		//BoxRigidBody* dynamicBoxRigidBody3 = new BoxRigidBody(boxPos1 + glm::vec2{-80.0f, 0.0f}, { 20.0f, 20.0f }, 0.0f, 4.0f, 0.5f, getRainbow(0));
+		//dynamicBoxRigidBody3->linear_velocity = { 0.0f, 0.0f };// getRandomVelocity();
+		//dynamicBoxRigidBody3->angular_velocity = 0.0f;//getRandomAngularVelocity();
+		//dynamicBoxRigidBody3->angle = 0.0f;
+		//mach.addDynamicObject(dynamicBoxRigidBody3);
+
+		//
+		//Joint* j = new Joint(dynamicBoxRigidBody, dynamicBoxRigidBody2, dynamicBoxRigidBody->position);
+		//mach.addJoint(j);
+
+		//Joint* j2 = new Joint(dynamicBoxRigidBody2, dynamicBoxRigidBody3, dynamicBoxRigidBody2->position);
+		//mach.addJoint(j2);
+
+		//Joint* j3 = new Joint(dynamicBoxRigidBody, dynamicBoxRigidBody3, dynamicBoxRigidBody->position);
+		//mach.addJoint(j3);
+
+		//Joint* jTop = new Joint(boxRigidBody, dynamicBoxRigidBody, hScreenRes);
+		//mach.addJoint(jTop);
+
+		size_t num = 8;
+		glm::vec2 size = { 75, 25};
+		glm::vec2 gap = { 90,0 };
+		
+		RigidBody* b1 = boxRigidBody;
+		for (size_t i = 0; i < num; i++) {
+			glm::vec2 x = float(i) * gap + hScreenRes + glm::vec2(50, 0);
+			BoxRigidBody* b = new BoxRigidBody(x, size, 0.0f, 0.50f, 0.5f, getRainbow(i), false);
+			mach.addDynamicObject(b);
+			glm::vec2 anchor = hScreenRes + float(i) * gap;
+			Joint * j = new Joint(b1, b,  anchor);
+			mach.addJoint(j);
+			b1 = b;
+		}
+		
 		//mach.addDynamicObject(dynamicBoxRigidBody2);
 		//mach.addDynamicObject(dynamicBoxRigidBody3);
 		mach.addDynamicObject(boxRigidBody);
@@ -90,8 +134,8 @@ struct Physics {
 		mach.addDynamicObject(boxRigidBody2);
 		mach.addDynamicObject(boxRigidBody4);
 		mach.addDynamicObject(boxRigidBody5);
-		mach.addDynamicObject(slope1);
-		mach.addDynamicObject(slope2);
+		//mach.addDynamicObject(slope1);
+		//mach.addDynamicObject(slope2);
 	};
 	
 	float getRandomAngle() {

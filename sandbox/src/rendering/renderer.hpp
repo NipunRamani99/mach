@@ -55,5 +55,27 @@ public:
 		rectShape.setPosition(contactPoint.x, contactPoint.y);
 		window.draw(rectShape);
 	}
+
+	void renderJoint(sf::RenderWindow& window, Joint * j) {
+		RigidBody* b1 = j->body1;
+		RigidBody* b2 = j->body2;
+
+		glm::mat2 r1 = rotationMatrix(b1->angle);
+		glm::mat2 r2 = rotationMatrix(b2->angle);
+
+		glm::vec2 x1 = b1->position;
+		glm::vec2 p1 = x1 + j->localAnchorPoint1 * r1;
+		glm::vec2 x2 = b2->position;
+		glm::vec2 p2 = x2 + j->localAnchorPoint2 * r2;
+
+		sf::VertexArray line(sf::Lines, 2);
+
+		line[0].position = { x1.x, x1.y };
+		line[0].color = sf::Color::White;
+		line[1].position = { x2.x, x2.y };
+		line[1].color = sf::Color::White;
+
+		window.draw(line);
+	}
 };
 #endif

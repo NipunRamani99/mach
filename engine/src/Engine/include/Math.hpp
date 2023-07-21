@@ -26,8 +26,29 @@ static glm::vec2 calculatePolygonCentroid(std::vector<glm::vec2>& vertices) {
 	return centroid;
 }
 
-
 static float cross(glm::vec2 a, glm::vec2 b) {
 	return a.x * b.y - a.y * b.x;
+}
+
+static glm::vec2 cross(float a, glm::vec2 b) {
+	return { -a * b.y, a * b.x };
+}
+static glm::mat2 rotationMatrix(float radians) {
+	float s = glm::sin(radians);
+	float c = glm::cos(radians);
+	return {c, -s, s, c};
+}
+
+static glm::mat2 invert(glm::mat2& A) {
+	glm::mat2 B;
+	float a = A[0][0], b = A[0][1], c = A[1][0], d = A[1][1];
+	float det = a*d - b*c;
+	assert(det != 0.0f);
+	det = 1.0f / det;
+	B[0][0] = d * det;
+	B[0][1] = -b * det;
+	B[1][0] = -c * det;
+	B[1][1] = a * det;
+	return B;
 }
 #endif
