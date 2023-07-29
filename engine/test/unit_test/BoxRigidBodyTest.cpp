@@ -12,7 +12,7 @@ TEST(BoxRigidBody, getVertices) {
 	};
 	
 	BoxRigidBody boxRigidBody;
-	boxRigidBody.position_current = position_current;
+	boxRigidBody.position = position_current;
 	boxRigidBody.size = size;
 	std::vector<glm::vec2> actual = boxRigidBody.getVertices();
 	for (size_t i = 4; i--;) {

@@ -14,7 +14,9 @@ add_subdirectory(dependencies) # add this
 
 # Add the source files
 file(GLOB SOURCE_FILES
-	src/**
+	src/*.hpp
+    src/*.cpp
+    src/rendering/*.hpp
 )
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} PRIVATE Engine sfml-graphics ImGui-SFML::ImGui-SFML)
@@ -35,3 +37,10 @@ if(WIN32)
           $<TARGET_FILE_DIR:${PROJECT_NAME}>)
   endif()
 endif()
+
+set_target_properties(sfml-graphics PROPERTIES FOLDER "Vendor")
+set_target_properties(sfml-main PROPERTIES FOLDER "Vendor")
+set_target_properties(sfml-system PROPERTIES FOLDER "Vendor")
+set_target_properties(sfml-window PROPERTIES FOLDER "Vendor")
+set_target_properties(ImGui-SFML PROPERTIES FOLDER "Vendor")
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "Mach")

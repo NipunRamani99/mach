@@ -1,6 +1,6 @@
 #include "include/Math.hpp"
 #include <gtest/gtest.h>
-#include <benchmark/benchmark.h>
+
 TEST(MathTest, test_rotate_vec2_radians) {
 	glm::vec2 vertex{1.0f, 0.0f};
 	float rotate_angle = 3.141592653f / 2.0f;
@@ -25,4 +25,3 @@ TEST(MathTest, test_calculatePolygonCentroid) {
 	EXPECT_LE(std::abs(centroid.x - 2.33333f), eps);
 	EXPECT_LE(std::abs(centroid.y - 2.0f), eps);
 }
-

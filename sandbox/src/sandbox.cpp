@@ -5,12 +5,18 @@
 #include <imgui-SFML.h>
 #include <imgui.h>
 #include "physics.hpp"
-#include "renderer/renderer.hpp"
+#include "rendering/renderer.hpp"
 #include "Constants.hpp"
+#include <include/ContactPoint.hpp>
 
+#include "include/CircleRigidBody.hpp"
+#include "include/mach.hpp"
+#include "SceneManager.hpp"
 int main() {
-    Physics physics;
+   // Physics physics;
     Renderer renderer;
+    Mach mach;
+    SceneManager sceneManager(mach);
 
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Mach Sandbox");
     window.setFramerateLimit(0);
@@ -19,11 +25,14 @@ int main() {
     ImGui::SFML::Init(window);
     float dt = 1 / 60.0f;
     sf::Clock deltaClock;
+    bool isSpacePressed = false;
+    bool isZPressed = false;
+    bool runSim = false;
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
             ImGui::SFML::ProcessEvent(event);
-            physics.processInput(event, dt);
+            sceneManager.processInput();
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
@@ -32,33 +41,49 @@ int main() {
         ImGui::SFML::Update(window, deltaClock.restart());
 
         ImGui::Begin("Mach Sandbox");
-        
-        physics.update(dt);
-        window.clear(clearBackground);
-        auto & contactManifolds = physics.mach.getContactList();
-        auto & staticObjects = physics.mach.getStaticObjects();
-        auto & dynamicObjects = physics.mach.getDynamicObjects();
-
-        for (size_t i = 0; i < dynamicObjects.size(); i++) {
-            auto& dynamicObject = dynamicObjects[i];
-            ImGui::Text("Dynamic Object %f", i);
-            ImGui::Text("Position: %f,%f", dynamicObject.position_current.x, dynamicObject.position_current.y);
-            ImGui::Text("Rotation: %f", dynamicObject.rotation_current);
-
-        }
-
-        for(auto & dynamicObjects: dynamicObjects) {
-			renderer.render(window, dynamicObjects);
-
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z) && !isZPressed) {
+			runSim = !runSim;
+			isZPressed = true;
 		}
-        for (auto& staticObject : staticObjects) {
-            renderer.render(window, staticObject);
+        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
+            isZPressed = false;
         }
+        if((sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !isSpacePressed )|| runSim ) {
+            mach.update(dt);
+            isSpacePressed = true;
+        }
+        if(!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
+			isSpacePressed = false;
+		}
+        window.clear(clearBackground);
+        auto & contactManifolds = mach.getContactList();
+        auto & rigidBodies = mach.getRigidBodies();
+        auto & joints = mach.getJoints();
+        for (size_t i = 0; i < rigidBodies.size(); i++) {
+            auto& dynamicObject = *rigidBodies[i];
+            ImGui::Separator();
+            std::string title = "Dynamic Object %f#" + std::to_string(i);
+            ImGui::Text(title.c_str(), i);
+            ImGui::Text("Position: %f,%f", dynamicObject.position.x, dynamicObject.position.y);
+            ImGui::Text("Rotation: %f", dynamicObject.angle);
+            ImGui::Text("Linear Velocity: %f %f", dynamicObject.linear_velocity.x, dynamicObject.linear_velocity.y);
+            ImGui::Text("Angular Velocity: %f", dynamicObject.angular_velocity);
+        }
+
+        for(RigidBody * rigidBodies: rigidBodies) {
+			renderer.renderRigidBody(window, rigidBodies);
+		}
+
         for (auto& contactManifold : contactManifolds) {
-            renderer.renderContactPoint(window, contactManifold.contact1);
-            if (contactManifold.contactCount > 1) {
-                renderer.renderContactPoint(window, contactManifold.contact2);
+            for (Collisions::CollisionManifold & cm : contactManifolds) {
+                for (ContactPoint& c : cm.contacts) {
+                    renderer.renderContactPoint(window, c.position);
+                }
             }
+        }
+
+        for (Joint* j : joints) {
+            renderer.renderJoint(window, j);
         }
 
         ImGui::End();
@@ -66,7 +91,6 @@ int main() {
         ImGui::SFML::Render(window);
         
         window.display();
-        
     }
 
     ImGui::SFML::Shutdown();
