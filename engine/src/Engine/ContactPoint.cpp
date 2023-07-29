@@ -179,7 +179,7 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	//box A faces
 	axis = FACE_A_X;
 	separation = faceA.x;
-		normal = dA.x > 0.0f ? rotAT[0] : -rotAT[0];
+	normal = dA.x > 0.0f ? rotAT[0] : -rotAT[0];
 	
 	//return { normal, {0.0f,0.0f} };
 

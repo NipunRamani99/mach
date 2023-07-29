@@ -9,7 +9,6 @@ namespace fs = std::filesystem;
 struct Physics {
 	Mach mach;
 	
-	fs::file_type type;
 	size_t num_dynamic_objects = 0;
 
 	static std::random_device rd;

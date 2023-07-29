@@ -10,9 +10,13 @@
 #include <include/ContactPoint.hpp>
 
 #include "include/CircleRigidBody.hpp"
+#include "include/mach.hpp"
+#include "SceneManager.hpp"
 int main() {
-    Physics physics;
+   // Physics physics;
     Renderer renderer;
+    Mach mach;
+    SceneManager sceneManager(mach);
 
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Mach Sandbox");
     window.setFramerateLimit(0);
@@ -28,7 +32,7 @@ int main() {
         sf::Event event;
         while (window.pollEvent(event)) {
             ImGui::SFML::ProcessEvent(event);
-            physics.processInput(event, dt);
+            sceneManager.processInput();
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
@@ -45,20 +49,17 @@ int main() {
             isZPressed = false;
         }
         if((sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !isSpacePressed )|| runSim ) {
-            physics.update(dt);
+            mach.update(dt);
             isSpacePressed = true;
         }
         if(!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
 			isSpacePressed = false;
 		}
         window.clear(clearBackground);
-        auto & contactManifolds = physics.mach.getContactList();
-        auto & staticObjects = physics.mach.getStaticObjects();
-        auto & dynamicObjects = physics.mach.getDynamicObjects();
-        auto & rigidBodies = physics.mach.getRigidBodies();
-        auto& joints = physics.mach.getJoints();
+        auto & contactManifolds = mach.getContactList();
+        auto & rigidBodies = mach.getRigidBodies();
+        auto & joints = mach.getJoints();
         for (size_t i = 0; i < rigidBodies.size(); i++) {
-            
             auto& dynamicObject = *rigidBodies[i];
             ImGui::Separator();
             std::string title = "Dynamic Object %f#" + std::to_string(i);
@@ -72,9 +73,7 @@ int main() {
         for(RigidBody * rigidBodies: rigidBodies) {
 			renderer.renderRigidBody(window, rigidBodies);
 		}
-        for (auto& staticObject : staticObjects) {
-            renderer.render(window, staticObject);
-        }
+
         for (auto& contactManifold : contactManifolds) {
             for (Collisions::CollisionManifold & cm : contactManifolds) {
                 for (ContactPoint& c : cm.contacts) {

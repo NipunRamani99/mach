@@ -30,8 +30,8 @@ public:
 		}
 
 		void preStep(float dt) {
-			const float allowedPenetration = 0.01f;
-			float biasFactor = 0.2f;
+			const float allowedPenetration = 0.1f;
+			float biasFactor = 0.1f;
 			//std::array<glm::vec2, 2> contacts = { contact1, contact2 };
 			for (int i = 0; i < contacts.size(); i++) {
 				ContactPoint& c = contacts[i];

@@ -10,7 +10,6 @@ public:
 		CIRCLE
 	};
 
-
 	glm::vec2 position = { 0.0f, 0.0f };
 	glm::vec2 linear_velocity = { 0.0f, 0.0f };
 	glm::vec3 color = { 1.0f,1.0f,1.0f };

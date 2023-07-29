@@ -7,7 +7,7 @@
 class BoxRigidBody  : public RigidBody {
 public:
 	glm::vec2 size = { 0.0f,0.0f };
-	BoxRigidBody(glm::vec2 position = { 0.0f,0.0f }, glm::vec2 size = { 20.0f,20.0f }, float rotation = 0.0f, float mass = 1.0f, float restitution = 0.0f,  glm::vec3 color = { 1.0f,1.0f,1.0f }, bool is_static = false) 
+	BoxRigidBody(glm::vec2 position = { 0.0f,0.0f }, glm::vec2 size = { 20.0f,20.0f }, float rotation = 0.0f, float mass = 1.0f, float restitution = 0.0f,  glm::vec3 color = { 1.0f,1.0f,1.0f }, bool is_static = false)
 	{
 		static uint32_t current_id = 0;
 		id = current_id++;

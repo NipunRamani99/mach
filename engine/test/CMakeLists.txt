@@ -39,5 +39,6 @@ endfunction()
 buildTest(BoxRigidBodyTest unit_test/BoxRigidBodyTest.cpp)
 buildTest(CollisionTest unit_test/CollisionTest.cpp)
 buildTest(MathTest unit_test/MathTest.cpp)
+buildTest(JointTest unit_test/JointTest.cpp)
 
 buildBenchmark(CollisionBenchmark perf_test/CollisionBenchmark.cpp)

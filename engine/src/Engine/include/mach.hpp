@@ -9,8 +9,6 @@
 
 class Mach {
 private:
-	std::vector<BoxRigidBody> staticObjects;
-	std::vector<BoxRigidBody> dynamicObjects;
 	std::vector<RigidBody*> rigidBodies;
 	std::vector<Collisions::CollisionManifold> contactList;
 	std::vector<Joint*> joints;
@@ -26,14 +24,6 @@ public:
 	Mach(Mach& mach) = delete;
 	
 	~Mach() {};
-	
-	std::vector<BoxRigidBody>& getStaticObjects() {
-		return staticObjects;
-	}
-
-	std::vector<BoxRigidBody>& getDynamicObjects() {
-		return dynamicObjects;
-	}
 
 	std::vector<Collisions::CollisionManifold>& getContactList() {
 		return contactList;
@@ -47,10 +37,7 @@ public:
 		return joints;
 	}
 
-	void addStaticObject(BoxRigidBody rigidBody) {
-		rigidBody.is_static = true;
-		staticObjects.push_back(rigidBody);
-	}
+
 
 	void addDynamicObject(RigidBody * rigidBody) {
 		rigidBodies.push_back(rigidBody);
@@ -62,7 +49,6 @@ public:
 
 	void update(float dt) {		
 		//dt/=10.0f;
-		
 		contactList.clear();
 		broadPhase();
 		applyGravity();
@@ -101,24 +87,6 @@ public:
 		}
 	}
 
-	void updateRotation(float dt) {
-		for (auto& dynamicObject : dynamicObjects) {
-			dynamicObject.updateAngularVelocity(dt);
-		}
-	}
-
-	void updatePosition(float dt) {
-		for (auto& dynamicObject : dynamicObjects) {
-			dynamicObject.updateVelocity(dt);
-		}
-	}
-
-	
-	static float cross(glm::vec2 a, glm::vec2 b) {
-		return a.x * b.y - a.y * b.x;
-	}
-
-	
 
 	void broadPhase() {
 		for (size_t i = 0; i < rigidBodies.size(); i++) {
@@ -152,54 +120,6 @@ public:
 		}
 		for (Joint* j : joints) {
 			j->preStep(1.0f / dt);
-		}
-	}
-
-	void checkCollisions() {
-		for (size_t i = 0; i < rigidBodies.size(); i++) {
-			if(rigidBodies[i]->is_static)continue;
-			for (size_t j = 0; j < rigidBodies.size(); j++) {
-				if (i == j) continue;
-				Collisions::IntersectionRecord intersectionRecord = Collisions::findIntersection(rigidBodies[i], rigidBodies[j]);
-				if(intersectionRecord.intersecting){
-			/*		Collisions::CollisionManifold collisionManifold(rigidBodies[i], rigidBodies[j], intersectionRecord.intersecting, intersectionRecord.depth, intersectionRecord.axis);*/
-					seperateBodies(rigidBodies[i], rigidBodies[j], intersectionRecord);
-				//	Collisions::findContactPoint(collisionManifold);
-					
-				}
-			}
-		}
-	}
-	
-	
-
-	void seperateBodies(RigidBody * rigidBodyA, RigidBody * rigidBodyB, Collisions::IntersectionRecord & intersection) {
-		if (rigidBodyA->is_static && rigidBodyB->is_static) return;
-		if (rigidBodyA->is_static) {
-			rigidBodyB->position -= (intersection.depth) * intersection.axis;
-		}
-		else if (rigidBodyB->is_static) {
-			rigidBodyA->position -= (intersection.depth) * intersection.axis;
-		}
-		else {
-			rigidBodyA->position -= (intersection.depth / 2.0f) * intersection.axis;
-			rigidBodyB->position += (intersection.depth / 2.0f) * intersection.axis;
-		}
-	}
-
-	void narrowPhase() {
-		for (size_t i = 0; i < rigidBodies.size(); i++) {
-			if (rigidBodies[i]->is_static)continue;
-			for (size_t j = 0; j < rigidBodies.size(); j++) {
-				if (i == j) continue;
-				Collisions::IntersectionRecord intersectionRecord = Collisions::findIntersection(rigidBodies[i], rigidBodies[j]);
-				if (intersectionRecord.intersecting) {
-					/*Collisions::CollisionManifold collisionManifold(rigidBodies[i], rigidBodies[j], intersectionRecord.intersecting, intersectionRecord.depth, intersectionRecord.axis);*/
-					seperateBodies(rigidBodies[i], rigidBodies[j], intersectionRecord);
-				//	Collisions::findContactPoint(collisionManifold);
-					//solveRigidBodyCollisionWithInertiaAndFriction(collisionManifold);
-				}
-			}	
 		}
 	}
 };
