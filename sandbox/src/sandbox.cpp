@@ -32,7 +32,7 @@ int main() {
         sf::Event event;
         while (window.pollEvent(event)) {
             ImGui::SFML::ProcessEvent(event);
-            sceneManager.processInput();
+            sceneManager.processInput(window);
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
@@ -86,14 +86,15 @@ int main() {
             renderer.renderJoint(window, j);
         }
 
+        //for (size_t i = 0; i < rigidBodies.size(); i++) {
+        //    renderer.renderAABB(window, rigidBodies[i]);
+        //}
         ImGui::End();
 
         ImGui::SFML::Render(window);
         
         window.display();
     }
-
     ImGui::SFML::Shutdown();
-
     return 0;
 }

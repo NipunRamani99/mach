@@ -1,6 +1,7 @@
 #ifndef __RIGID_BODY_HPP__
 #define __RIGID_BODY_HPP__
 #include <glm/glm.hpp>
+#include "AABB.hpp"
 class RigidBody
 {
 private:
@@ -27,7 +28,7 @@ public:
 	bool is_static = false;
 	uint32_t id = 0;
 	Type type = BOX;
-	
+	AABB aabb;
 	
 	virtual ~RigidBody() {}
 
@@ -95,5 +96,9 @@ public:
 	}
 
 	virtual void calculateInertia() = 0;
+
+	virtual void calculateAABB() = 0;
+
+	virtual bool checkIfInside(glm::vec2 p) = 0;
 };
 #endif // !__RIGID_BODY_HPP__

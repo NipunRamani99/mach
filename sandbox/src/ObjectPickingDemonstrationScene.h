@@ -1,18 +1,20 @@
-#ifndef __DEFAULT_SCENE_HPP__
-#define __DEFAULT_SCENE_HPP__
+#pragma once
+#include "include/mach.hpp"
 #include "Scene.hpp"
 #include "Constants.hpp"
-#include <SFML/Graphics.hpp>
+#include "SFML/Graphics.hpp"
 #include <random>
-class DefaultScene : public Scene {
+class ObjectPickingDemonstrationScene : public Scene {
 private:
 	bool is_button_pressed = false;
-
+	bool is_key_pressed = false;
+	static std::random_device rd;
 public:
-	DefaultScene(Mach & mach) 
+	ObjectPickingDemonstrationScene(Mach& mach) 
 		:
 		Scene(mach)
 	{
+
 	}
 
 	void initialize() noexcept override {
@@ -60,7 +62,7 @@ public:
 		boxRigidBody4->is_static = true;
 		boxRigidBody4->calculateInertia();
 		boxRigidBody4->aabb.size = { 100.0f, 1950.0f };
-		
+
 		BoxRigidBody* boxRigidBody5 = new BoxRigidBody();
 		boxRigidBody5->size = { 1920.0f, 50.0f };
 		boxRigidBody5->position = { 20.0f , 350.0f };
@@ -68,31 +70,38 @@ public:
 		boxRigidBody5->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody5->is_static = true;
 		boxRigidBody5->calculateInertia();
-		boxRigidBody5->aabb.size = {100.0f, 1970.0f};
+		boxRigidBody5->aabb.size = { 100.0f, 1970.0f };
 		mach.addDynamicObject(boxRigidBody);
 		mach.addDynamicObject(boxRigidBody2);
 		mach.addDynamicObject(boxRigidBody4);
 		mach.addDynamicObject(boxRigidBody5);
 		mach.addDynamicObject(slope1);
 		mach.addDynamicObject(slope2);
+
+		size_t num = 8;
+		glm::vec2 size = { 50, 50 };
+		glm::vec2 pos = { 650, 800 };
+		for (int i = 0; i < num; i++) {
+			BoxRigidBody* b = new BoxRigidBody(pos, size, 0.0f, 10.0f, 0.5f, getRainbow(i), false);
+			b->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
+			b->angular_velocity = 0.0f;// getRandomAngularVelocity();
+			b->is_static = false;
+			mach.addDynamicObject(b);
+			pos.x += 51;
+			pos += glm::vec2{25.0f, 0.0f};
+		}
 	}
 
 	void processInput(sf::RenderWindow & window) noexcept override {
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !is_button_pressed) {
-			static int i = 0;
-			is_button_pressed = true;
-			BoxRigidBody* dynamicBoxRigidBody = new BoxRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, getRandomSize(), 0.0f, 10.0f, 0.5f, getRainbow(i++));
-			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
-			dynamicBoxRigidBody->angular_velocity = 0.0f;// getRandomAngularVelocity();
-			dynamicBoxRigidBody->is_static = false;
-			mach.addDynamicObject(dynamicBoxRigidBody);
+		sf::Vector2i pos = sf::Mouse::getPosition(window);
+		
+		glm::vec2 p = { pos.x,pos.y };
+		auto& rigidBodies = mach.getRigidBodies();
+		
+		for (RigidBody * body : rigidBodies) {
+			if (body->checkIfInside(p)) {
+				body->color = glm::vec3(255.0f,0.0f,0.0f);
+			}
 		}
-		if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-			is_button_pressed = false;
-		}
-
 	}
-
-
 };
-#endif // !__DEFAULT_SCENE_HPP__

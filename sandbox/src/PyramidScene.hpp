@@ -15,7 +15,6 @@ public:
 		:
 		Scene(mach)
 	{
-		initialize();
 	}
 	void initialize() noexcept override {
 		BoxRigidBody* boxRigidBody = new BoxRigidBody();
@@ -91,7 +90,7 @@ public:
 		}
 	}
 
-	void processInput() noexcept override {
+	void processInput(sf::RenderWindow & window) noexcept override {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !is_button_pressed) {
 			static int i = 0;
 			is_button_pressed = true;

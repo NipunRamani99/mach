@@ -80,6 +80,8 @@ int clipSegmentToLine(ClipVertex vOut[2], ClipVertex vIn[2], const glm::vec2& no
 	return numOut;
 }
 
+
+
 static void ComputeIncidentEdge(ClipVertex c[2], const glm::vec2& h, const glm::vec2& pos,
 	const glm::mat2& rot, const glm::vec2& normal)
 {

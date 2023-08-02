@@ -6,12 +6,13 @@
 #include <array>
 #include "Collision.hpp"
 #include "Joint.hpp"
-
+#include "MouseJoint.hpp"
 class Mach {
 private:
 	std::vector<RigidBody*> rigidBodies;
 	std::vector<Collisions::CollisionManifold> contactList;
 	std::vector<Joint*> joints;
+	MouseJoint* mouse_joint = nullptr;
 	const int num_iterations = 10;
 	glm::vec2 gravity = glm::vec2(0.0f,10.0f);
 	float angularAcceleration = 0.0f;
@@ -37,7 +38,13 @@ public:
 		return joints;
 	}
 
+	void setMouseJoint(MouseJoint* joint) {
+		this->mouse_joint = joint;
+	}
 
+	void removeMouseJoint() {
+		this->mouse_joint = nullptr;
+	}
 
 	void addDynamicObject(RigidBody * rigidBody) {
 		rigidBodies.push_back(rigidBody);
@@ -65,6 +72,9 @@ public:
 			for (size_t j = 0; j < list_size; j++) {
 				joints[j]->applyImpulse();
 			}
+			if (mouse_joint != nullptr) {
+				mouse_joint->applyImpulse(dt);
+			}
 		}
 		step(dt);
 	}
@@ -89,6 +99,9 @@ public:
 
 
 	void broadPhase() {
+		for (RigidBody* rigidBody : rigidBodies) {
+			rigidBody->calculateAABB();
+		}
 		for (size_t i = 0; i < rigidBodies.size(); i++) {
 			if (rigidBodies[i]->is_static)continue;
 			for (size_t j = 0; j < rigidBodies.size(); j++) {
@@ -120,6 +133,9 @@ public:
 		}
 		for (Joint* j : joints) {
 			j->preStep(1.0f / dt);
+		}
+		if (mouse_joint != nullptr) {
+			mouse_joint->initialize(dt);
 		}
 	}
 };
