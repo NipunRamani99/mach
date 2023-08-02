@@ -77,5 +77,14 @@ public:
 
 		window.draw(line);
 	}
+
+	void renderAABB(sf::RenderWindow& window, RigidBody* body) {
+		glm::vec2 pos = body->aabb.position;
+		glm::vec2 width = body->aabb.size;
+		sf::RectangleShape rectShape({width.x, width.y});
+		rectShape.setPosition({ pos.x,pos.y });
+		rectShape.setFillColor(sf::Color(255, 0, 0, 128));
+		window.draw(rectShape);
+	}
 };
 #endif

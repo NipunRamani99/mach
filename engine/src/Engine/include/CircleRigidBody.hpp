@@ -27,6 +27,14 @@ public:
 		this->inertia = 0.5f * mass * radius * radius;
 		this->inv_inertia = 1.0f / inertia;
 	}
+
+	void calculateAABB() {
+	
+	}
+
+	bool checkIfInside(glm::vec2 p) {
+		return glm::length(p - position) <= radius;
+	}
 };
 #endif // !__CIRCLE_RIGID_BODY_HPP
 

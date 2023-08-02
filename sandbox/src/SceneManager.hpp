@@ -4,9 +4,12 @@
 #include "DefaultScene.hpp"
 #include "RevoluteJointScene.hpp"
 #include "PyramidScene.hpp"
+#include "ObjectPickingDemonstrationScene.h"
+#include "MouseJointScene.hpp"
 #include "include/mach.hpp"
 #include <memory>
 #include <SFML/Graphics.hpp>
+
 class SceneManager {
 private:
 	std::unique_ptr<Scene> currentScene;
@@ -17,9 +20,10 @@ public:
 		mach(mach)
 	{
 		currentScene = std::make_unique<DefaultScene>(mach);
+		currentScene->initialize();
 	}
 
-	void processInput() {
+	void processInput(sf::RenderWindow & window) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)) {
 			if (currentScene) currentScene->teardown();
 			currentScene = std::make_unique<DefaultScene>(mach);
@@ -35,7 +39,17 @@ public:
 			currentScene = std::make_unique<PyramidScene>(mach);
 			currentScene->initialize();
 		}
-		currentScene->processInput();
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num4)) {
+			if (currentScene) currentScene->teardown();
+			currentScene = std::make_unique<ObjectPickingDemonstrationScene>(mach);
+			currentScene->initialize();
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num5)) {
+			if (currentScene) currentScene->teardown();
+			currentScene = std::make_unique<MouseJointScene>(mach);
+			currentScene->initialize();
+		}
+		currentScene->processInput(window);
 	}
 
 	~SceneManager() {

@@ -24,6 +24,8 @@ public:
 		this->static_friction = 0.6;
 		this->dynamic_friction = 0.4;
 		calculateInertia();
+		float max = std::max(size.x, size.y);
+		aabb.size = glm::vec2(1.5f * max, 1.5f * max);
 	}
 
 	std::vector<glm::vec2> getVertices() {
@@ -107,6 +109,31 @@ public:
 			mass = std::numeric_limits<float>::max();
 			inv_mass = 0.0f;
 		}
+	}
+
+	void calculateAABB() {
+		aabb.position = position - 0.5f * aabb.size;
+	}
+
+	bool testAABBOverlap(RigidBody * b) {
+		
+	}
+
+	bool checkIfInside(glm::vec2 p) {
+		int intersections = 0;
+		auto vertices = getVertices();
+		for (size_t i = 0; i < vertices.size(); i++) {
+			glm::vec2 v1 = vertices[i];
+			glm::vec2 v2 = vertices[(i + 1) % vertices.size()];
+
+
+			if(((( v1.y <= p.y && p.y < v2.y) ||
+				(v2.y <= p.y && p.y < v1.y)) && 
+				(p.x < (v2.x - v1.x) * ((p.y - v1.y) / (v2.y - v1.y )) + v1.x))){
+				intersections++;
+			}
+		}
+		return intersections % 2 == 1;
 	}
 };
 #endif

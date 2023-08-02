@@ -51,4 +51,5 @@ static glm::mat2 invert(glm::mat2& A) {
 	B[1][1] = a * det;
 	return B;
 }
+
 #endif
