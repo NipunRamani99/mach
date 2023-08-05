@@ -6,6 +6,7 @@
 #include "PyramidScene.hpp"
 #include "ObjectPickingDemonstrationScene.h"
 #include "MouseJointScene.hpp"
+#include "CarScene.hpp"
 #include "include/mach.hpp"
 #include <memory>
 #include <SFML/Graphics.hpp>
@@ -47,6 +48,11 @@ public:
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num5)) {
 			if (currentScene) currentScene->teardown();
 			currentScene = std::make_unique<MouseJointScene>(mach);
+			currentScene->initialize();
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num6)) {
+			if (currentScene) currentScene->teardown();
+			currentScene = std::make_unique<CarScene>(mach);
 			currentScene->initialize();
 		}
 		currentScene->processInput(window);

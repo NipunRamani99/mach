@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include "RigidBody.hpp"
 #include "BoxRigidBody.hpp"
+#include "CircleRigidBody.hpp"
 #include <vector>
 
 union FeaturePair
@@ -36,4 +37,6 @@ public:
 };
 
 std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB);
+std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, CircleRigidBody* bodyB);
+float nearestEdgeSeperation(int32_t* edgeIndex, BoxRigidBody* bodyA, BoxRigidBody* bodyB);
 #endif

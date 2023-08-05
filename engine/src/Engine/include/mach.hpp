@@ -106,7 +106,10 @@ public:
 			if (rigidBodies[i]->is_static)continue;
 			for (size_t j = 0; j < rigidBodies.size(); j++) {
 				if (i == j) continue;
-				if (rigidBodies[i]->type == RigidBody::Type::BOX && rigidBodies[j]->type == RigidBody::Type::BOX) {
+				if (rigidBodies[i]->groupId != -1) {
+					if (rigidBodies[i]->groupId == rigidBodies[j]->groupId) continue;
+				}
+				//if (rigidBodies[i]->type == RigidBody::Type::BOX && rigidBodies[j]->type == RigidBody::Type::BOX) {
 					bool found = false;
 					for (Collisions::CollisionManifold & manifold : contactList) {
 						if (manifold.bodyA == rigidBodies[i] && manifold.bodyB == rigidBodies[j] || manifold.bodyB == rigidBodies[i] && manifold.bodyA == rigidBodies[j]) {
@@ -119,7 +122,7 @@ public:
 						if (collisionManifold.contacts.size() > 0) {
 							contactList.push_back(collisionManifold);
 						}
-				}
+				//}
 			}
 		}
 	}

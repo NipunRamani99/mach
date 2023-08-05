@@ -7,6 +7,8 @@
 class BoxRigidBody  : public RigidBody {
 public:
 	glm::vec2 size = { 0.0f,0.0f };
+
+
 	BoxRigidBody(glm::vec2 position = { 0.0f,0.0f }, glm::vec2 size = { 20.0f,20.0f }, float rotation = 0.0f, float mass = 1.0f, float restitution = 0.0f,  glm::vec3 color = { 1.0f,1.0f,1.0f }, bool is_static = false)
 	{
 		static uint32_t current_id = 0;
@@ -18,6 +20,9 @@ public:
 		this->color = color;
 		this->mass = mass;
 		this->is_static = is_static;
+		calculatePolygonVertices();
+		calculatePolygonNormals();
+
 		if (!is_static) {
 			this->inv_mass = 1.0f / mass;
 		}
@@ -26,6 +31,29 @@ public:
 		calculateInertia();
 		float max = std::max(size.x, size.y);
 		aabb.size = glm::vec2(1.5f * max, 1.5f * max);
+	}
+
+	void calculatePolygonVertices() {
+		glm::vec2 half_size = 0.5f * size;
+		glm::vec2 tl = -half_size;
+		glm::vec2 br = half_size;
+		glm::vec2 tr{br.x, tl.y};
+		glm::vec2 bl{tl.x, br.y};
+		polygonData.vertices = { bl, tl, tr, br };
+	}
+
+	void calculatePolygonNormals() {
+		std::vector<glm::vec2> normals;
+		normals.resize(4);
+		for (size_t i = 0; i < 4; i++) {
+			glm::vec2 v1 = polygonData.vertices[i];
+			glm::vec2 v2 = polygonData.vertices[(i + 1) % 4];
+			glm::vec2 n = v1 - v2;
+			n = { -n.y, n.x };
+			n = glm::normalize(n);
+			normals[i] = n;
+		}
+		polygonData.normals = normals;
 	}
 
 	std::vector<glm::vec2> getVertices() {
