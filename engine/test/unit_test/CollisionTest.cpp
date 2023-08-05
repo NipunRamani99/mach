@@ -2,7 +2,7 @@
 #include "include/Collision.hpp"
 #include "include/RigidBody.hpp"
 #include "include/Joint.hpp"
-
+#include "include/ContactPoint.hpp"
 /*
 * Create 2 overlapping polygons and check if they intersect using Collisions.intersectPolygon
 * 
@@ -113,4 +113,22 @@ TEST(CollisionTest, CollisionPoint) {
 	//ASSERT_LE(std::abs(contactPoints[0].normal.x ), eps);
 	//ASSERT_LE(std::abs(contactPoints[0].normal.y + 1.0f), eps);
 	//ASSERT_LE(std::abs(contactPoints[0].separation + 0.414214), eps);
+}
+
+TEST(CollisionTest, ContactPointSeperationEdge) {
+	BoxRigidBody boxA = BoxRigidBody();
+	boxA.size = glm::vec2(4, 4);
+	boxA.angle = 0.0f;
+	boxA.position = glm::vec2(0, 0);
+
+	BoxRigidBody boxB = BoxRigidBody();
+	boxB.size = glm::vec2(4, 4);
+	boxB.angle = 0.0f;
+	boxB.position = glm::vec2(4.0f, 0.0f);
+	int32_t edgeIndex = 0;
+
+	float seperation = nearestEdgeSeperation(&edgeIndex, &boxA, &boxB);
+
+	ASSERT_FLOAT_EQ(seperation, 0.0f);
+	
 }

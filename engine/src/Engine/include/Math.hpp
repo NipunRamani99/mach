@@ -39,6 +39,13 @@ static glm::mat2 rotationMatrix(float radians) {
 	return {c, -s, s, c};
 }
 
+static glm::vec2 applyRotationMatrix(glm::vec2 v, glm::mat2 rot) {
+	return {
+		rot[0][0] * v.x - rot[0][1] * v.y,
+		rot[1][0] * v.x + rot[1][1] * v.y
+	};
+}
+
 static glm::mat2 invert(glm::mat2& A) {
 	glm::mat2 B;
 	float a = A[0][0], b = A[0][1], c = A[1][0], d = A[1][1];

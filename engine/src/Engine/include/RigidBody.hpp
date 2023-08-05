@@ -1,7 +1,12 @@
 #ifndef __RIGID_BODY_HPP__
 #define __RIGID_BODY_HPP__
 #include <glm/glm.hpp>
+#include <vector>
 #include "AABB.hpp"
+struct PolygonData {
+	std::vector<glm::vec2> vertices;
+	std::vector<glm::vec2> normals;
+};
 class RigidBody
 {
 private:
@@ -10,6 +15,7 @@ public:
 		BOX,
 		CIRCLE
 	};
+	PolygonData polygonData;
 
 	glm::vec2 position = { 0.0f, 0.0f };
 	glm::vec2 linear_velocity = { 0.0f, 0.0f };
@@ -27,6 +33,7 @@ public:
 	float dynamic_friction = 0.1f;
 	bool is_static = false;
 	uint32_t id = 0;
+	uint32_t groupId = -1;
 	Type type = BOX;
 	AABB aabb;
 	

@@ -44,6 +44,32 @@ glm::mat2 rotatation_matrix2(float angle) {
 	return glm::mat2(c, -s, s, c);
 }
 
+float nearestEdgeSeperation(int32_t* edgeIndex, BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
+	size_t count1 = bodyA->polygonData.vertices.size();
+	size_t count2 = bodyB->polygonData.vertices.size();
+	std::vector<glm::vec2> v1s = bodyA->polygonData.vertices;
+	std::vector<glm::vec2> v2s = bodyB->polygonData.vertices;
+	std::vector<glm::vec2> normals = bodyA->polygonData.normals;
+	glm::mat2 rot1 = rotationMatrix(bodyA->angle);
+	glm::mat2 rot2 = rotationMatrix(bodyB->angle);
+	glm::mat2 rot1T = glm::transpose(rot1);
+	glm::mat2 rotXt = rot2 * rot1T;
+	glm::vec2 d = bodyB->position - bodyA->position;
+	glm::vec2 dx = d * rotXt;
+
+	int32_t best_index = 0;
+	float maxSeperation = std::numeric_limits<float>::min();
+	for (size_t i = 0; i < count1; i++) {
+		
+		for (size_t j = 0; j < count2; j++) {
+
+		}
+	}
+
+
+	return 0.0f;
+}
+
 int clipSegmentToLine(ClipVertex vOut[2], ClipVertex vIn[2], const glm::vec2& normal, float offset, char clipEdge) {
 	// Start with no output points
 	int numOut = 0;
@@ -134,7 +160,133 @@ static void ComputeIncidentEdge(ClipVertex c[2], const glm::vec2& h, const glm::
 	c[1].v = pos + c[1].v * rot;
 }
 
+static std::pair<float, float> projectCircle(CircleRigidBody& body, glm::vec2 axis) {
+	glm::vec2 direction = glm::normalize(axis);
+	glm::vec2 directionAndRadius = direction * body.radius;
+	glm::vec2 p1 = body.position + directionAndRadius;
+	glm::vec2 p2 = body.position - directionAndRadius;
+	float min = std::min(glm::dot(p1, axis), glm::dot(p2, axis));
+	float max = std::max(glm::dot(p1, axis), glm::dot(p2, axis));
+	return { min,max };
+}
 
+static std::pair<float, float> projectVertices(std::vector<glm::vec2>& vertices, glm::vec2 axis) {
+	float min = std::numeric_limits<float>::max();
+	float max = std::numeric_limits<float>::min();
+
+	for (int i = 0; i < vertices.size(); i++) {
+		glm::vec2 v = vertices[i];
+		float proj = glm::dot(v, axis);
+		if (proj < min) { min = proj; };
+		if (proj > max) {
+			max = proj;
+		}
+	}
+	return { min,max };
+}
+static int findClosestPointOnPolygon(std::vector<glm::vec2>& vertices, glm::vec2 point) {
+	float minDistance = std::numeric_limits<float>::max();
+	int closestPoint = -1;
+	for (size_t i = 0; i < vertices.size(); i++) {
+		float distance = glm::length(vertices[i] - point);
+		if (distance < minDistance) {
+			minDistance = distance;
+			closestPoint = i;
+		}
+	}
+	return closestPoint;
+}
+std::tuple<bool, float, glm::vec2> circlePolygonIntersection(CircleRigidBody& bodyA, BoxRigidBody& bodyB) {
+	glm::vec2 normal = { 0.0f,0.0f };
+	float depth = std::numeric_limits<float>::max();
+	std::vector<glm::vec2> vertices = bodyB.getVertices();
+	glm::vec2 axis = glm::vec2(0.0f, 0.0f);
+	float axisDepth = 0.0f;
+	for (size_t i = 0; i < vertices.size(); i++) {
+		glm::vec2 va = vertices[i];
+		glm::vec2 vb = vertices[(i + 1) % vertices.size()];
+		glm::vec2 edge = vb - va;
+		glm::vec2 edgeNormal = glm::normalize(glm::vec2(-edge.y, edge.x));
+		auto [minA, maxA] = projectCircle(bodyA, edgeNormal);
+		auto [minB, maxB] = projectVertices(vertices, edgeNormal);
+		if (minA >= maxB || minB >= maxA) {
+			return { false, depth, normal };
+		}
+		axisDepth = std::min(maxB - minA, maxA - minB);
+		if (axisDepth < depth) {
+			depth = axisDepth;
+			normal = edgeNormal;
+		}
+	}
+	int cpIndex = findClosestPointOnPolygon(vertices, bodyA.position);
+	glm::vec2 cp = vertices[cpIndex];
+	axis = glm::normalize(cp - bodyA.position);
+
+	auto [min1, max1] = projectVertices(vertices, axis);
+	auto [min2, max2] = projectCircle(bodyA, axis);
+
+	if (min1 >= max2 || min2 >= max1) {
+		return { false, depth, normal };
+	}
+	axisDepth = std::min(max2 - min1, max1 - min2);
+	if (axisDepth < depth) {
+		depth = axisDepth;
+		normal = axis;
+	}
+
+	glm::vec2 direction = glm::normalize(bodyB.position - bodyA.position);
+
+	if (glm::dot(direction, normal) < 0.0f) {
+		normal = -normal;
+	}
+
+	return { true, depth, normal };
+}
+std::pair<float, glm::vec2> pointSegmentDistance(glm::vec2 p, glm::vec2 a, glm::vec2 b) {
+	glm::vec2 contact = a;
+	glm::vec2 ab = b - a;
+	glm::vec2 pa = p - a;
+	float t = glm::dot(pa, ab) / glm::dot(ab, ab);
+	if (t <= 0.0f) {
+		contact = a;
+	}
+	else if (t >= 1.0f) {
+		contact = b;
+	}
+	else {
+		contact = a + t * ab;
+	}
+	return { glm::length(contact - p), contact };
+}
+
+std::vector<ContactPoint> Collide(BoxRigidBody* boxBody, CircleRigidBody* circleBody) {
+	ContactPoint _contactPoint;
+	auto bodyA = *circleBody;
+	auto bodyB = *boxBody;
+	auto [colliding, seperation, normal] = circlePolygonIntersection(bodyA, bodyB);
+	if (colliding) {
+		glm::vec2 contactPoint = { 0.0f, 0.0f };
+		glm::vec2 center = bodyA.position;
+		std::vector<glm::vec2> vertices = bodyB.getVertices();
+		float minDistance = std::numeric_limits<float>::max();
+		for (size_t i = 0; i < vertices.size(); i++) {
+			glm::vec2 va = vertices[i];
+			glm::vec2 vb = vertices[(i + 1) % vertices.size()];
+			auto [distance, contact] = pointSegmentDistance(center, va, vb);
+			if (distance < minDistance) {
+				minDistance = distance;
+				contactPoint = contact;
+			}
+		}
+
+		_contactPoint.normal = normal;
+		_contactPoint.separation = -seperation;
+		_contactPoint.position = contactPoint;
+		return { _contactPoint };
+	}
+	return {};
+	
+}
 
 std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 

@@ -21,12 +21,20 @@ public:
 		std::vector<ContactPoint> contacts;
 
 
-		CollisionManifold(RigidBody* bodyA, RigidBody* bodyB) 
+		CollisionManifold(RigidBody* bodyA, RigidBody* bodyB)
 			:
 			bodyA(bodyA),
 			bodyB(bodyB)
 		{
-			contacts = Collide((BoxRigidBody*)bodyA, (BoxRigidBody*)bodyB);
+			if (bodyA->type == RigidBody::CIRCLE && bodyB->type == RigidBody::BOX) {
+ 				contacts = Collide((BoxRigidBody*)bodyB, (CircleRigidBody*)bodyA);
+			}
+			else if (bodyA->type == RigidBody::BOX && bodyB->type == RigidBody::CIRCLE) {
+				contacts = Collide((BoxRigidBody*)bodyA, (CircleRigidBody*)bodyB);
+			}
+			else {
+				contacts = Collide((BoxRigidBody*)bodyA, (BoxRigidBody*)bodyB);
+			}
 		}
 
 		void preStep(float dt) {
