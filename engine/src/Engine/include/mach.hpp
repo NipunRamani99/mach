@@ -13,23 +13,22 @@ private:
 	std::vector<Collisions::CollisionManifold> contactList;
 	std::vector<Joint*> joints;
 	MouseJoint* mouse_joint = nullptr;
-	const int num_iterations = 10;
-	glm::vec2 gravity = glm::vec2(0.0f,10.0f);
+	const int num_iterations = 8;
+	glm::vec2 gravity = glm::vec2(0.0f, 10.0f);
 	float angularAcceleration = 0.0f;
-	long long unsigned int iterationCount = 0;
 public:
 	Mach() {
 
 	}
-	
+
 	Mach(Mach& mach) = delete;
-	
+
 	~Mach() {};
 
 	std::vector<Collisions::CollisionManifold>& getContactList() {
 		return contactList;
 	}
-	
+
 	std::vector<RigidBody*>& getRigidBodies() {
 		return rigidBodies;
 	}
@@ -46,7 +45,7 @@ public:
 		this->mouse_joint = nullptr;
 	}
 
-	void addDynamicObject(RigidBody * rigidBody) {
+	void addDynamicObject(RigidBody* rigidBody) {
 		rigidBodies.push_back(rigidBody);
 	}
 
@@ -54,8 +53,7 @@ public:
 		joints.push_back(joint);
 	}
 
-	void update(float dt) {		
-		//dt/=10.0f;
+	void update(float dt) {
 		contactList.clear();
 		broadPhase();
 		applyGravity();
@@ -63,10 +61,8 @@ public:
 		preStep(dt);
 		for (int i = 0; i < num_iterations; i++) {
 			size_t list_size = contactList.size();
-			for(size_t j = 0; j < list_size; j++) {
+			for (size_t j = 0; j < list_size; j++) {
 				contactList[j].applyImpulse();
-				iterationCount++;
-				
 			}
 			list_size = joints.size();
 			for (size_t j = 0; j < list_size; j++) {
@@ -80,19 +76,19 @@ public:
 	}
 
 	void applyGravity() {
-		for (RigidBody * rigidBody : rigidBodies) {
+		for (RigidBody* rigidBody : rigidBodies) {
 			rigidBody->accelerate(gravity);
 		}
 	}
 
 	void applyForce(float dt) {
-		for(RigidBody * rigidBody : rigidBodies) {
+		for (RigidBody* rigidBody : rigidBodies) {
 			rigidBody->applyForce(dt);
 		}
 	}
 
 	void step(float dt) {
-		for(RigidBody * rigidBody : rigidBodies) {
+		for (RigidBody* rigidBody : rigidBodies) {
 			rigidBody->integrate(dt);
 		}
 	}
@@ -109,28 +105,24 @@ public:
 				if (rigidBodies[i]->groupId != -1) {
 					if (rigidBodies[i]->groupId == rigidBodies[j]->groupId) continue;
 				}
-				//if (rigidBodies[i]->type == RigidBody::Type::BOX && rigidBodies[j]->type == RigidBody::Type::BOX) {
-					bool found = false;
-					for (Collisions::CollisionManifold & manifold : contactList) {
-						if (manifold.bodyA == rigidBodies[i] && manifold.bodyB == rigidBodies[j] || manifold.bodyB == rigidBodies[i] && manifold.bodyA == rigidBodies[j]) {
-							found = true;
-							break;
-						}
+				bool found = false;
+				for (Collisions::CollisionManifold& manifold : contactList) {
+					if (manifold.bodyA == rigidBodies[i] && manifold.bodyB == rigidBodies[j] || manifold.bodyB == rigidBodies[i] && manifold.bodyA == rigidBodies[j]) {
+						found = true;
+						break;
 					}
-					if (found) continue;
-					Collisions::CollisionManifold collisionManifold(rigidBodies[i], rigidBodies[j]);
-						if (collisionManifold.contacts.size() > 0) {
-							contactList.push_back(collisionManifold);
-						}
-				//}
+				}
+				if (found) continue;
+				Collisions::CollisionManifold collisionManifold(rigidBodies[i], rigidBodies[j]);
+				if (collisionManifold.contacts.size() > 0) {
+					contactList.push_back(collisionManifold);
+				}
+
 			}
 		}
 	}
 
 	void preStep(float dt) {
-		if (contactList.size() > 0) {
-			//std::cout << "yolo2";
-		}
 		for (size_t i = 0; i < contactList.size(); i++) {
 			contactList[i].preStep(dt);
 		}

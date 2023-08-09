@@ -83,8 +83,8 @@ public:
 		glm::vec2 pos = { 650, 800 };
 		for (int i = 0; i < num; i++) {
 			BoxRigidBody* b = new BoxRigidBody(pos, size, 0.0f, 10.0f, 0.5f, getRainbow(i), false);
-			b->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
-			b->angular_velocity = 0.0f;// getRandomAngularVelocity();
+			b->linear_velocity = { 0.0f, 0.0f };
+			b->angular_velocity = 0.0f;
 			b->is_static = false;
 			mach.addDynamicObject(b);
 			pos.x += 51;

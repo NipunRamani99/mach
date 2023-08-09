@@ -4,7 +4,7 @@
 
 #include <imgui-SFML.h>
 #include <imgui.h>
-#include "physics.hpp"
+
 #include "rendering/renderer.hpp"
 #include "Constants.hpp"
 #include <include/ContactPoint.hpp>
@@ -13,14 +13,11 @@
 #include "include/mach.hpp"
 #include "SceneManager.hpp"
 int main() {
-   // Physics physics;
     Renderer renderer;
     Mach mach;
     SceneManager sceneManager(mach);
-
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Mach Sandbox");
     window.setFramerateLimit(0);
-    
     sf::Color clearBackground{49, 60, 69};
     ImGui::SFML::Init(window);
     float dt = 1 / 60.0f;
@@ -41,12 +38,10 @@ int main() {
             {
                 // update the view to the new size of the window
                 sf::FloatRect visibleArea(0.f, 0.f, event.size.width, event.size.height);
-                window.setView(sf::View(visibleArea));
+             //   window.setView(sf::View(visibleArea));
             }
-        }   
-
+        }
         ImGui::SFML::Update(window, deltaClock.restart());
-
         ImGui::Begin("Mach Sandbox");
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z) && !isZPressed) {
 			runSim = !runSim;
@@ -76,11 +71,9 @@ int main() {
             ImGui::Text("Linear Velocity: %f %f", dynamicObject.linear_velocity.x, dynamicObject.linear_velocity.y);
             ImGui::Text("Angular Velocity: %f", dynamicObject.angular_velocity);
         }
-
         for(RigidBody * rigidBodies: rigidBodies) {
 			renderer.renderRigidBody(window, rigidBodies);
 		}
-
         for (auto& contactManifold : contactManifolds) {
             for (Collisions::CollisionManifold & cm : contactManifolds) {
                 for (ContactPoint& c : cm.contacts) {
@@ -88,18 +81,11 @@ int main() {
                 }
             }
         }
-
         for (Joint* j : joints) {
             renderer.renderJoint(window, j);
         }
-
-        //for (size_t i = 0; i < rigidBodies.size(); i++) {
-        //    renderer.renderAABB(window, rigidBodies[i]);
-        //}
         ImGui::End();
-
         ImGui::SFML::Render(window);
-        
         window.display();
     }
     ImGui::SFML::Shutdown();

@@ -80,8 +80,8 @@ public:
 			glm::vec2 pos_inner = pos;
 			for (int j = i; j < num; j++) {
 				BoxRigidBody* b = new BoxRigidBody(pos_inner, size, 0.0f, 10.0f, 0.5f, getRainbow(i), false);
-				b->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
-				b->angular_velocity = 0.0f;// getRandomAngularVelocity();
+				b->linear_velocity = { 0.0f, 0.0f };
+				b->angular_velocity = 0.0f;
 				b->is_static = false;
 				mach.addDynamicObject(b);
 				pos_inner.x += 51;
@@ -95,8 +95,8 @@ public:
 			static int i = 0;
 			is_button_pressed = true;
 			BoxRigidBody* dynamicBoxRigidBody = new BoxRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, getRandomSize(), 0.0f, 10.0f, 0.5f, getRainbow(i++));
-			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
-			dynamicBoxRigidBody->angular_velocity = 0.0f;// getRandomAngularVelocity();
+			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };
+			dynamicBoxRigidBody->angular_velocity = 0.0f;
 			dynamicBoxRigidBody->is_static = false;
 			mach.addDynamicObject(dynamicBoxRigidBody);
 		}

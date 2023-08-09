@@ -29,7 +29,7 @@ public:
 	}
 
 	void calculateAABB() {
-	
+		
 	}
 
 	bool checkIfInside(glm::vec2 p) {

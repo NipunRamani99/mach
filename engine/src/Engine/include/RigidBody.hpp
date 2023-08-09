@@ -3,10 +3,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include "AABB.hpp"
-struct PolygonData {
-	std::vector<glm::vec2> vertices;
-	std::vector<glm::vec2> normals;
-};
+
 class RigidBody
 {
 private:
@@ -15,7 +12,6 @@ public:
 		BOX,
 		CIRCLE
 	};
-	PolygonData polygonData;
 
 	glm::vec2 position = { 0.0f, 0.0f };
 	glm::vec2 linear_velocity = { 0.0f, 0.0f };
