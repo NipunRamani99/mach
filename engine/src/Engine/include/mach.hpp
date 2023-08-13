@@ -16,6 +16,7 @@ private:
 	const int num_iterations = 8;
 	glm::vec2 gravity = glm::vec2(0.0f, 10.0f);
 	float angularAcceleration = 0.0f;
+	std::vector<std::pair<RigidBody*, RigidBody*>> collisionPairs;
 public:
 	Mach() {
 
@@ -55,7 +56,9 @@ public:
 
 	void update(float dt) {
 		contactList.clear();
+		collisionPairs.clear();
 		broadPhase();
+		narrowPhase();
 		applyGravity();
 		applyForce(dt);
 		preStep(dt);
@@ -98,6 +101,7 @@ public:
 		for (RigidBody* rigidBody : rigidBodies) {
 			rigidBody->calculateAABB();
 		}
+
 		for (size_t i = 0; i < rigidBodies.size(); i++) {
 			if (rigidBodies[i]->is_static)continue;
 			for (size_t j = 0; j < rigidBodies.size(); j++) {
@@ -105,19 +109,26 @@ public:
 				if (rigidBodies[i]->groupId != -1) {
 					if (rigidBodies[i]->groupId == rigidBodies[j]->groupId) continue;
 				}
-				bool found = false;
-				for (Collisions::CollisionManifold& manifold : contactList) {
-					if (manifold.bodyA == rigidBodies[i] && manifold.bodyB == rigidBodies[j] || manifold.bodyB == rigidBodies[i] && manifold.bodyA == rigidBodies[j]) {
-						found = true;
-						break;
-					}
+				if (rigidBodies[i]->aabb.isOverlapping(rigidBodies[j]->aabb)) {
+					collisionPairs.push_back({ rigidBodies[i], rigidBodies[j] });
 				}
-				if (found) continue;
-				Collisions::CollisionManifold collisionManifold(rigidBodies[i], rigidBodies[j]);
-				if (collisionManifold.contacts.size() > 0) {
-					contactList.push_back(collisionManifold);
-				}
+			}
+		}
+	}
 
+	void narrowPhase() {
+		for (auto [bodyA, bodyB] : collisionPairs) {
+			bool found = false;
+			for (Collisions::CollisionManifold& manifold : contactList) {
+				if (manifold.bodyA == bodyA && manifold.bodyB == bodyB || manifold.bodyB == bodyA && manifold.bodyA == bodyB) {
+					found = true;
+					break;
+				}
+			}
+			if (found) continue;
+			Collisions::CollisionManifold collisionManifold(bodyA, bodyB);
+			if (collisionManifold.contacts.size() > 0) {
+				contactList.push_back(collisionManifold);
 			}
 		}
 	}
