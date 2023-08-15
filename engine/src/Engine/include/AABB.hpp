@@ -25,5 +25,20 @@ struct AABB {
 		// Check if there is overlap along both x and y axes
 		return x_overlap && y_overlap;
 	}
+
+	bool Overlapping(AABB& a, AABB& b) {
+		glm::vec2 b_ul = b.position;
+		glm::vec2 b_lr = b.position + b.size;
+		glm::vec2 a_ul = a.position;
+		glm::vec2 a_lr = a.position + a.size;
+		// Check for overlap along the x-axis
+		bool x_overlap = (b_ul.x <= a_lr.x) && (b_lr.x >= a_ul.x);
+
+		// Check for overlap along the y-axis
+		bool y_overlap = (b_ul.y <= a_lr.y) && (b_lr.y >= a_ul.y);
+
+		// Check if there is overlap along both x and y axes
+		return x_overlap && y_overlap;
+	}
 };
 #endif

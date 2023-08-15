@@ -22,7 +22,7 @@ public:
 	void initialize() noexcept override {
 		BoxRigidBody* boxRigidBody = new BoxRigidBody();
 		boxRigidBody->size = { 1900.0f, 50.0f };
-		boxRigidBody->position = { 970.0f , 1050.0f };
+		boxRigidBody->position = { 970.0f , 1000.0f };
 		boxRigidBody->angle = 0.0f;
 		boxRigidBody->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody->is_static = true;
@@ -84,9 +84,10 @@ public:
 		for (size_t i = 0; i < num; i++) {
 			glm::vec2 x = float(i) * gap + hScreenRes + glm::vec2(50, 0);
 			BoxRigidBody* b = new BoxRigidBody(x, size, 0.0f, 0.50f, 0.5f, getRainbow(i), false);
+			std::cout << "Mass: " << b->mass << " Inv Mass: " << b->inv_mass << " Inertia: " << b->inertia << " Inverse Inertia: " << b->inv_inertia <<  " is static: " << b->is_static <<"\n";
 			mach.addDynamicObject(b);
 			glm::vec2 anchor = hScreenRes + float(i) * gap;
-			Joint* j = new Joint(b1, b, anchor);
+			RevoluteJoint* j = new RevoluteJoint(b1, b, anchor);
 			mach.addJoint(j);
 			b1 = b;
 		}
@@ -97,8 +98,8 @@ public:
 			static int i = 0;
 			is_button_pressed = true;
 			BoxRigidBody* dynamicBoxRigidBody = new BoxRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, getRandomSize(), 0.0f, 10.0f, 0.5f, getRainbow(i++));
-			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
-			dynamicBoxRigidBody->angular_velocity = 0.0f;// getRandomAngularVelocity();
+			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };
+			dynamicBoxRigidBody->angular_velocity = 0.0f;
 			dynamicBoxRigidBody->is_static = false;
 			mach.addDynamicObject(dynamicBoxRigidBody);
 		}

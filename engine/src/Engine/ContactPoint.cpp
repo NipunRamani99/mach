@@ -1,6 +1,6 @@
 #include "include/ContactPoint.hpp"
-
-
+#include <tuple>
+#include <optional>
 enum Axis
 {
 	FACE_A_X,
@@ -42,32 +42,6 @@ glm::mat2 rotatation_matrix2(float angle) {
 	float c = cos(angle);
 	float s = sin(angle);
 	return glm::mat2(c, -s, s, c);
-}
-
-float nearestEdgeSeperation(int32_t* edgeIndex, BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
-	size_t count1 = bodyA->polygonData.vertices.size();
-	size_t count2 = bodyB->polygonData.vertices.size();
-	std::vector<glm::vec2> v1s = bodyA->polygonData.vertices;
-	std::vector<glm::vec2> v2s = bodyB->polygonData.vertices;
-	std::vector<glm::vec2> normals = bodyA->polygonData.normals;
-	glm::mat2 rot1 = rotationMatrix(bodyA->angle);
-	glm::mat2 rot2 = rotationMatrix(bodyB->angle);
-	glm::mat2 rot1T = glm::transpose(rot1);
-	glm::mat2 rotXt = rot2 * rot1T;
-	glm::vec2 d = bodyB->position - bodyA->position;
-	glm::vec2 dx = d * rotXt;
-
-	int32_t best_index = 0;
-	float maxSeperation = std::numeric_limits<float>::min();
-	for (size_t i = 0; i < count1; i++) {
-		
-		for (size_t j = 0; j < count2; j++) {
-
-		}
-	}
-
-
-	return 0.0f;
 }
 
 int clipSegmentToLine(ClipVertex vOut[2], ClipVertex vIn[2], const glm::vec2& normal, float offset, char clipEdge) {
@@ -218,7 +192,7 @@ std::tuple<bool, float, glm::vec2> circlePolygonIntersection(CircleRigidBody& bo
 			normal = edgeNormal;
 		}
 	}
-	int cpIndex = findClosestPointOnPolygon(vertices, bodyA.position);
+	/*int cpIndex = findClosestPointOnPolygon(vertices, bodyA.position);
 	glm::vec2 cp = vertices[cpIndex];
 	axis = glm::normalize(cp - bodyA.position);
 
@@ -232,7 +206,7 @@ std::tuple<bool, float, glm::vec2> circlePolygonIntersection(CircleRigidBody& bo
 	if (axisDepth < depth) {
 		depth = axisDepth;
 		normal = axis;
-	}
+	}*/
 
 	glm::vec2 direction = glm::normalize(bodyB.position - bodyA.position);
 
@@ -259,13 +233,15 @@ std::pair<float, glm::vec2> pointSegmentDistance(glm::vec2 p, glm::vec2 a, glm::
 	return { glm::length(contact - p), contact };
 }
 
+
+
 std::vector<ContactPoint> Collide(BoxRigidBody* boxBody, CircleRigidBody* circleBody) {
-	ContactPoint _contactPoint;
+	ContactPoint contactPoint;
 	auto bodyA = *circleBody;
 	auto bodyB = *boxBody;
-	auto [colliding, seperation, normal] = circlePolygonIntersection(bodyA, bodyB);
+	auto [colliding, separation, normal] = circlePolygonIntersection(bodyA, bodyB);
 	if (colliding) {
-		glm::vec2 contactPoint = { 0.0f, 0.0f };
+		/*glm::vec2 contactPoint = { 0.0f, 0.0f };
 		glm::vec2 center = bodyA.position;
 		std::vector<glm::vec2> vertices = bodyB.getVertices();
 		float minDistance = std::numeric_limits<float>::max();
@@ -277,15 +253,30 @@ std::vector<ContactPoint> Collide(BoxRigidBody* boxBody, CircleRigidBody* circle
 				minDistance = distance;
 				contactPoint = contact;
 			}
-		}
+		}*/
 
-		_contactPoint.normal = normal;
-		_contactPoint.separation = -seperation;
-		_contactPoint.position = contactPoint;
-		return { _contactPoint };
+		contactPoint.normal = normal;
+		contactPoint.separation = -separation;
+		contactPoint.position = circleBody->position + circleBody->radius * normal;
+		return { contactPoint };
 	}
 	return {};
 	
+}
+
+std::vector<ContactPoint> Collide(CircleRigidBody* bodyA, CircleRigidBody* bodyB) {
+	ContactPoint contactPoint;
+	float radiiSum = bodyA->radius + bodyB->radius;
+	float dist = glm::distance(bodyA->position, bodyB->position);
+	if (dist > radiiSum) {
+		return {};
+	}
+	float separation = dist - radiiSum;
+	glm::vec2 normal = glm::normalize(bodyA->position - bodyB->position);
+	contactPoint.normal = normal;
+	contactPoint.separation = separation;
+	contactPoint.position = bodyA->position + bodyA->radius * normal;
+	return { contactPoint };
 }
 
 std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
@@ -304,12 +295,16 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	glm::mat2 rotBT = glm::transpose(rotB);
 
 	glm::vec2 dp = pB - pA;
-	glm::vec2 dA = dp * rotAT ;
+	glm::vec2 dA = dp * rotAT;
 	glm::vec2 dB = dp * rotBT;
 
 	glm::mat2 C = rotAT * rotB;
 	glm::mat2 absC = abs(C);
 	glm::mat2 absCT = glm::transpose(absC);
+
+	/*
+	 * For a 2D Box, we only need to compute the separation along X and Y axis.
+     */
 
 	//box A faces
 	glm::vec2 faceA = glm::abs(dA) - hA - hB * absC;
@@ -322,8 +317,6 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	if (faceB.x > 0.0f || faceB.y > 0.0f) {
 		return std::vector<ContactPoint>();
 	}
-	//return { faceA, faceB };
-
 
 	//find best axis
 	Axis axis;
@@ -335,16 +328,15 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	separation = faceA.x;
 	normal = dA.x > 0.0f ? rotAT[0] : -rotAT[0];
 	
-	//return { normal, {0.0f,0.0f} };
-
-	float relativeTol = 0.95f;
-	const float absoluteTol = 0.01f;
+	float relativeTol = 1.00f;
+	const float absoluteTol = 0.00f;
 
 	if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
 		axis = FACE_A_Y;
 		separation = faceA.y;
 		normal = dA.y > 0.0f ? rotAT[1] : -rotAT[1];
 	}
+
 
 	//box B faces
 	if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
@@ -357,8 +349,6 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 		separation = faceB.y;
 		normal = dB.y > 0.0f ? rotBT[1] : -rotBT[1];
 	}
-
-//	return { normal, {0.0f,0.0f} };
 
 	//setup clipping plane data based on the separating axis
 	glm::vec2 frontNormal, sideNormal;
@@ -425,8 +415,6 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 	int np; 
 
 	np = clipSegmentToLine(clipPoints1, incidentEdge, -sideNormal, negSide, negEdge);
-
-//	return {incidentEdge[0].v, incidentEdge[1].v};
 
 	if (np < 2)
 		return {};

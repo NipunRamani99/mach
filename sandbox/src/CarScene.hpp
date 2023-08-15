@@ -57,32 +57,32 @@ public:
 		mach.addDynamicObject(boxRigidBody2);
 		mach.addDynamicObject(boxRigidBody4);
 		mach.addDynamicObject(boxRigidBody5);
-		glm::vec2 pos = { 650, 800 };
-		glm::vec2 pos2 = { 850, 800 };
+		glm::vec2 pos = { 680, 795 };
+		glm::vec2 pos2 = { 620, 795 };
 		glm::vec2 size = { 70, 70 };
-		glm::vec2 bodySize = { 200, 50 };
-		glm::vec2 bodyPos = { 750, 800 };
+		glm::vec2 bodySize = { 100, 50 };
+		glm::vec2 bodyPos = { 650, 770 };
 		body = new BoxRigidBody(bodyPos, bodySize, 0.0f, 10.0f, 0.5f, getRainbow(6), false);
-		body->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
-		body->angular_velocity = 0.0f;// getRandomAngularVelocity();
+		body->linear_velocity = { 0.0f, 0.0f };
+		body->angular_velocity = 0.0f;
 		body->is_static = false;
 		body->groupId = 1;
-		mach.addDynamicObject(body);
-		wheel1 = new CircleRigidBody(pos, 50.0f, 0.0f, 1.0f, 0.5f, getRainbow(5), false); // new BoxRigidBody(pos, size, 0.0f, 10.0f, 0.5f, getRainbow(2), false);
-		wheel1->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
-		wheel1->angular_velocity = 0.0f;// getRandomAngularVelocity();
+		wheel1 = new CircleRigidBody(pos, 10.0f, 0.0f, 1.0f, 0.5f, getRainbow(5), false); 
+		wheel1->linear_velocity = { 0.0f, 0.0f };
+		wheel1->angular_velocity = 0.0f;
 		wheel1->is_static = false;
 		wheel1->groupId = 1;
 		mach.addDynamicObject(wheel1);
-		wheel2 = new CircleRigidBody(pos2, 50.0f, 0.0f, 1.0f, 0.5f, getRainbow(5), false);
-		wheel2->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
-		wheel2->angular_velocity = 0.0f;// getRandomAngularVelocity();
+		wheel2 = new CircleRigidBody(pos2, 10.0f, 0.0f, 1.0f, 0.5f, getRainbow(5), false);
+		wheel2->linear_velocity = { 0.0f, 0.0f };
+		wheel2->angular_velocity = 0.0f;
 		wheel2->is_static = false;
 		wheel2->groupId = 1;
 		mach.addDynamicObject(wheel2);
-		Joint* j1 = new Joint(wheel1, body, pos);
+		mach.addDynamicObject(body);
+		RevoluteJoint* j1 = new RevoluteJoint(wheel1, body, pos);
 		mach.addJoint(j1);
-		Joint* j2 = new Joint(wheel2, body, pos2);
+		RevoluteJoint* j2 = new RevoluteJoint(wheel2, body, pos2);
 		mach.addJoint(j2);
 
 		BoxRigidBody* slope1 = new BoxRigidBody();
@@ -104,9 +104,7 @@ public:
 		slope2->aabb.size = { 800.0f, 400.0f };
 		mach.addDynamicObject(slope1);
 		mach.addDynamicObject(slope2);
-		/*CircleRigidBody* circle = new CircleRigidBody({ 1000,800 }, 20.0f, 0.0f, 1.0f, 0.5f, getRainbow(5), false);
-		circle->radius = 45.0f;
-		mach.addDynamicObject(circle);*/
+	
 	}
 	void processInput(sf::RenderWindow& window) noexcept override {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
@@ -119,7 +117,6 @@ public:
 					mach.setMouseJoint(mouse_joint);
 					is_lmb_pressed = true;
 				}
-
 			}
 			else if (mouse_joint && is_lmb_pressed) {
 				sf::Vector2i p = sf::Mouse::getPosition(window);

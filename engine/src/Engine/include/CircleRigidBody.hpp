@@ -29,7 +29,10 @@ public:
 	}
 
 	void calculateAABB() {
-	
+		glm::vec2 top_left = {position.x - radius, position.y - radius};
+		glm::vec2 size = { 2.0f * radius, 2.0f * radius };
+		this->aabb.position = top_left;
+		this->aabb.size = size;
 	}
 
 	bool checkIfInside(glm::vec2 p) {

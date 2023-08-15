@@ -1,30 +1,29 @@
 #pragma once
-#include "include/mach.hpp"
 #include "Scene.hpp"
 #include "Constants.hpp"
-#include "SFML/Graphics.hpp"
-#include <random>
-class ObjectPickingDemonstrationScene : public Scene {
+class DistanceJointScene : public Scene {
 private:
-	bool is_button_pressed = false;
-	bool is_key_pressed = false;
-	static std::random_device rd;
+	MouseJoint* joint = nullptr;
+	RigidBody* b = nullptr;
+	RigidBody* b2 = nullptr;
+
+	bool is_lmb_pressed = false;
 public:
-	ObjectPickingDemonstrationScene(Mach& mach) 
+	DistanceJointScene(Mach& mach)
 		:
 		Scene(mach)
 	{
-
 	}
+	// Inherited via Scene
+	void initialize() override {
 
-	void initialize() noexcept override {
 		BoxRigidBody* boxRigidBody = new BoxRigidBody();
-		boxRigidBody->size = { 1900.0f, 100.0f };
+		boxRigidBody->size = { 1900.0f, 50.0f };
 		boxRigidBody->position = { 970.0f , 1000.0f };
 		boxRigidBody->angle = 0.0f;
 		boxRigidBody->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody->is_static = true;
-		boxRigidBody->aabb.size = glm::vec2{ 1950.0f, 150.0f };
+		boxRigidBody->aabb.size = glm::vec2{ 1950.0f, 100.0f };
 		boxRigidBody->calculateInertia();
 		boxRigidBody->calculateAABB();
 
@@ -40,20 +39,13 @@ public:
 		BoxRigidBody* slope1 = new BoxRigidBody();
 		slope1->size = { 800.0f, 50.0f };
 		slope1->position = { 500.0f , 600.0f };
-		slope1->angle = PI / 9.0f;
+		slope1->angle = 0.0f;
 		slope1->color = { 0.0f,255.0f * 0.92f,0.0f };
 		slope1->is_static = true;
 		slope1->calculateInertia();
 		slope1->calculateAABB();
 		slope1->aabb.size = { 800.0f, 400.0f };
-		BoxRigidBody* slope2 = new BoxRigidBody();
-		slope2->size = { 800.0f, 50.0f };
-		slope2->position = { 1200.0f , 350.0f };
-		slope2->angle = -PI / 9.0f;
-		slope2->color = { 0.0f,255.0f * 0.92f,0.0f };
-		slope2->is_static = true;
-		slope2->calculateInertia();
-		slope2->aabb.size = { 800.0f, 400.0f };
+
 		BoxRigidBody* boxRigidBody4 = new BoxRigidBody();
 		boxRigidBody4->size = { 1920.0f, 50.0f };
 		boxRigidBody4->position = { 1900.0f , 350.0f };
@@ -76,31 +68,50 @@ public:
 		mach.addDynamicObject(boxRigidBody4);
 		mach.addDynamicObject(boxRigidBody5);
 		mach.addDynamicObject(slope1);
-		mach.addDynamicObject(slope2);
-
-		size_t num = 8;
-		glm::vec2 size = { 50, 50 };
 		glm::vec2 pos = { 650, 800 };
-		for (int i = 0; i < num; i++) {
-			BoxRigidBody* b = new BoxRigidBody(pos, size, 0.0f, 10.0f, 0.5f, getRainbow(i), false);
-			b->linear_velocity = { 0.0f, 0.0f };
-			b->angular_velocity = 0.0f;
-			b->is_static = false;
-			mach.addDynamicObject(b);
-			pos.x += 51;
-			pos += glm::vec2{25.0f, 0.0f};
-		}
+		glm::vec2 size = { 50,50 };
+		b = new BoxRigidBody(pos, size, 0.0f, 10.0f, 0.5f, getRainbow(2), false);
+		b->linear_velocity = { 0.0f, 0.0f };
+		b->angular_velocity = 0.0f;
+		b->is_static = false;
+		mach.addDynamicObject(b);
+		glm::vec2 pos2 = { 850, 800 };
+		glm::vec2 size2 = { 50,50 };
+		b2 = new BoxRigidBody(pos2, size2, 0.0f, 10.0f, 0.5f, getRainbow(3), false);
+		b2->linear_velocity = { 0.0f, 0.0f };
+		b2->angular_velocity = 0.0f;
+		b2->is_static = false;
+		mach.addDynamicObject(b2);
+		DistanceJoint* joint = new DistanceJoint(b, b2, pos, pos2, 150, 250, 200, 1, 1);
+		mach.addJoint(joint);
 	}
+	void processInput(sf::RenderWindow& window) override {
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+			if (joint == nullptr) {
+				sf::Vector2i p = sf::Mouse::getPosition(window);
+				sf::Vector2f p_coord = window.mapPixelToCoords(p);
+				if (b->checkIfInside({ float(p_coord.x),float(p_coord.y) })) {
+					glm::vec2 target = { float(p_coord.x), float(p_coord.y) };
+					joint = new MouseJoint(b, target, target);
+					mach.setMouseJoint(joint);
+					is_lmb_pressed = true;
+				}
 
-	void processInput(sf::RenderWindow & window) noexcept override {
-		sf::Vector2i pos = sf::Mouse::getPosition(window);
-		
-		glm::vec2 p = { pos.x,pos.y };
-		auto& rigidBodies = mach.getRigidBodies();
-		
-		for (RigidBody * body : rigidBodies) {
-			if (body->checkIfInside(p)) {
-				body->color = glm::vec3(255.0f,0.0f,0.0f);
+			}
+			else if (joint && is_lmb_pressed) {
+				sf::Vector2i p = sf::Mouse::getPosition(window);
+				sf::Vector2f p_coord = window.mapPixelToCoords(p);
+				glm::vec2 target = { float(p_coord.x), float(p_coord.y) };
+				joint->setTarget(target);
+				is_lmb_pressed = true;
+			}
+		}
+		if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && is_lmb_pressed) {
+			mach.removeMouseJoint();
+			is_lmb_pressed = false;
+			if (joint) {
+				delete joint;
+				joint = nullptr;
 			}
 		}
 	}

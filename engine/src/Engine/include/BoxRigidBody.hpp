@@ -4,6 +4,7 @@
 #include "Math.hpp"
 #include <vector>
 #include "RigidBody.hpp"
+#include <iostream>
 class BoxRigidBody  : public RigidBody {
 public:
 	glm::vec2 size = { 0.0f,0.0f };
@@ -20,8 +21,6 @@ public:
 		this->color = color;
 		this->mass = mass;
 		this->is_static = is_static;
-		calculatePolygonVertices();
-		calculatePolygonNormals();
 
 		if (!is_static) {
 			this->inv_mass = 1.0f / mass;
@@ -31,29 +30,6 @@ public:
 		calculateInertia();
 		float max = std::max(size.x, size.y);
 		aabb.size = glm::vec2(1.5f * max, 1.5f * max);
-	}
-
-	void calculatePolygonVertices() {
-		glm::vec2 half_size = 0.5f * size;
-		glm::vec2 tl = -half_size;
-		glm::vec2 br = half_size;
-		glm::vec2 tr{br.x, tl.y};
-		glm::vec2 bl{tl.x, br.y};
-		polygonData.vertices = { bl, tl, tr, br };
-	}
-
-	void calculatePolygonNormals() {
-		std::vector<glm::vec2> normals;
-		normals.resize(4);
-		for (size_t i = 0; i < 4; i++) {
-			glm::vec2 v1 = polygonData.vertices[i];
-			glm::vec2 v2 = polygonData.vertices[(i + 1) % 4];
-			glm::vec2 n = v1 - v2;
-			n = { -n.y, n.x };
-			n = glm::normalize(n);
-			normals[i] = n;
-		}
-		polygonData.normals = normals;
 	}
 
 	std::vector<glm::vec2> getVertices() {
@@ -128,8 +104,9 @@ public:
 
 	void calculateInertia() {
 		if (!is_static) {
-			inertia = (mass * (size.x * size.x + size.y * size.y)) / 12.0f;
-			inv_inertia = 1.0f / inertia;
+			float new_inertia = (mass * (size.x * size.x + size.y * size.y)) / 12.0f;
+			this->inertia = new_inertia;
+			this->inv_inertia = 1.0f / (new_inertia);
 			inv_mass = 1.0f / mass;
 		} else {
 			inertia = std::numeric_limits<float>::max();

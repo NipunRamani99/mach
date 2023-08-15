@@ -56,7 +56,7 @@ public:
 		window.draw(rectShape);
 	}
 
-	void renderJoint(sf::RenderWindow& window, Joint * j) {
+	void renderJoint(sf::RenderWindow& window, RevoluteJoint * j) {
 		RigidBody* b1 = j->body1;
 		RigidBody* b2 = j->body2;
 

@@ -82,8 +82,8 @@ public:
 			static int i = 0;
 			is_button_pressed = true;
 			BoxRigidBody* dynamicBoxRigidBody = new BoxRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, getRandomSize(), 0.0f, 10.0f, 0.5f, getRainbow(i++));
-			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };//getRandomVelocity();
-			dynamicBoxRigidBody->angular_velocity = 0.0f;// getRandomAngularVelocity();
+			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };
+			dynamicBoxRigidBody->angular_velocity = 0.0f;
 			dynamicBoxRigidBody->is_static = false;
 			mach.addDynamicObject(dynamicBoxRigidBody);
 		}

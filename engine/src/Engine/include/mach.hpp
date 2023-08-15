@@ -4,32 +4,38 @@
 #include "BoxRigidBody.hpp"
 #include <vector>
 #include <array>
+#include <set>
 #include "Collision.hpp"
-#include "Joint.hpp"
+#include "RevoluteJoint.hpp"
 #include "MouseJoint.hpp"
+#include "DistanceJoint.hpp"
 class Mach {
 private:
 	std::vector<RigidBody*> rigidBodies;
-	std::vector<Collisions::CollisionManifold> contactList;
+	std::vector<CollisionManifold> contactList;
 	std::vector<Joint*> joints;
 	MouseJoint* mouse_joint = nullptr;
-	const int num_iterations = 10;
-	glm::vec2 gravity = glm::vec2(0.0f,10.0f);
+	const int num_iterations = 8;
+	glm::vec2 gravity = glm::vec2(0.0f, 10.0f);
 	float angularAcceleration = 0.0f;
-	long long unsigned int iterationCount = 0;
+	std::set<std::pair<RigidBody*, RigidBody*>> collisionPairs;
 public:
 	Mach() {
 
 	}
-	
+
 	Mach(Mach& mach) = delete;
-	
+
 	~Mach() {};
 
-	std::vector<Collisions::CollisionManifold>& getContactList() {
+	std::vector<CollisionManifold>& getContactList() {
 		return contactList;
 	}
-	
+
+	std::set<std::pair<RigidBody*, RigidBody*>> getCollisionPairs() {
+		return collisionPairs;
+	}
+
 	std::vector<RigidBody*>& getRigidBodies() {
 		return rigidBodies;
 	}
@@ -46,7 +52,7 @@ public:
 		this->mouse_joint = nullptr;
 	}
 
-	void addDynamicObject(RigidBody * rigidBody) {
+	void addDynamicObject(RigidBody* rigidBody) {
 		rigidBodies.push_back(rigidBody);
 	}
 
@@ -54,23 +60,22 @@ public:
 		joints.push_back(joint);
 	}
 
-	void update(float dt) {		
-		//dt/=10.0f;
+	void update(float dt) {
 		contactList.clear();
+		collisionPairs.clear();
 		broadPhase();
+		narrowPhase();
 		applyGravity();
 		applyForce(dt);
 		preStep(dt);
 		for (int i = 0; i < num_iterations; i++) {
 			size_t list_size = contactList.size();
-			for(size_t j = 0; j < list_size; j++) {
+			for (size_t j = 0; j < list_size; j++) {
 				contactList[j].applyImpulse();
-				iterationCount++;
-				
 			}
 			list_size = joints.size();
 			for (size_t j = 0; j < list_size; j++) {
-				joints[j]->applyImpulse();
+				joints[j]->applyImpulse(dt);
 			}
 			if (mouse_joint != nullptr) {
 				mouse_joint->applyImpulse(dt);
@@ -80,19 +85,19 @@ public:
 	}
 
 	void applyGravity() {
-		for (RigidBody * rigidBody : rigidBodies) {
+		for (RigidBody* rigidBody : rigidBodies) {
 			rigidBody->accelerate(gravity);
 		}
 	}
 
 	void applyForce(float dt) {
-		for(RigidBody * rigidBody : rigidBodies) {
+		for (RigidBody* rigidBody : rigidBodies) {
 			rigidBody->applyForce(dt);
 		}
 	}
 
 	void step(float dt) {
-		for(RigidBody * rigidBody : rigidBodies) {
+		for (RigidBody* rigidBody : rigidBodies) {
 			rigidBody->integrate(dt);
 		}
 	}
@@ -102,6 +107,7 @@ public:
 		for (RigidBody* rigidBody : rigidBodies) {
 			rigidBody->calculateAABB();
 		}
+
 		for (size_t i = 0; i < rigidBodies.size(); i++) {
 			if (rigidBodies[i]->is_static)continue;
 			for (size_t j = 0; j < rigidBodies.size(); j++) {
@@ -109,33 +115,39 @@ public:
 				if (rigidBodies[i]->groupId != -1) {
 					if (rigidBodies[i]->groupId == rigidBodies[j]->groupId) continue;
 				}
-				//if (rigidBodies[i]->type == RigidBody::Type::BOX && rigidBodies[j]->type == RigidBody::Type::BOX) {
-					bool found = false;
-					for (Collisions::CollisionManifold & manifold : contactList) {
-						if (manifold.bodyA == rigidBodies[i] && manifold.bodyB == rigidBodies[j] || manifold.bodyB == rigidBodies[i] && manifold.bodyA == rigidBodies[j]) {
-							found = true;
-							break;
-						}
-					}
-					if (found) continue;
-					Collisions::CollisionManifold collisionManifold(rigidBodies[i], rigidBodies[j]);
-						if (collisionManifold.contacts.size() > 0) {
-							contactList.push_back(collisionManifold);
-						}
-				//}
+				
+				if (rigidBodies[i]->aabb.isOverlapping(rigidBodies[j]->aabb)) {
+					int min = std::min(i, j);
+					int max = std::max(i, j);
+					collisionPairs.insert({ rigidBodies[min], rigidBodies[max] });
+				}
+			}
+		}
+	}
+
+	void narrowPhase() {
+		for (auto [bodyA, bodyB] : collisionPairs) {
+			bool found = false;
+			for (CollisionManifold& manifold : contactList) {
+				if (manifold.bodyA == bodyA && manifold.bodyB == bodyB || manifold.bodyB == bodyA && manifold.bodyA == bodyB) {
+					found = true;
+					break;
+				}
+			}
+			if (found) continue;
+			CollisionManifold collisionManifold(bodyA, bodyB);
+			if (collisionManifold.contacts.size() > 0) {
+				contactList.push_back(collisionManifold);
 			}
 		}
 	}
 
 	void preStep(float dt) {
-		if (contactList.size() > 0) {
-			//std::cout << "yolo2";
-		}
 		for (size_t i = 0; i < contactList.size(); i++) {
 			contactList[i].preStep(dt);
 		}
 		for (Joint* j : joints) {
-			j->preStep(1.0f / dt);
+			j->initialize(dt);
 		}
 		if (mouse_joint != nullptr) {
 			mouse_joint->initialize(dt);
