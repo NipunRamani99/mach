@@ -80,9 +80,9 @@ public:
 		wheel2->groupId = 1;
 		mach.addDynamicObject(wheel2);
 		mach.addDynamicObject(body);
-		Joint* j1 = new Joint(wheel1, body, pos);
+		RevoluteJoint* j1 = new RevoluteJoint(wheel1, body, pos);
 		mach.addJoint(j1);
-		Joint* j2 = new Joint(wheel2, body, pos2);
+		RevoluteJoint* j2 = new RevoluteJoint(wheel2, body, pos2);
 		mach.addJoint(j2);
 
 		BoxRigidBody* slope1 = new BoxRigidBody();

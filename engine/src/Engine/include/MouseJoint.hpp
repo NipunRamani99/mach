@@ -2,8 +2,9 @@
 #define __MOUSE_JOINT_HPP__
 #include "Joint.hpp"
 #include "RigidBody.hpp"
-class MouseJoint {
-private:
+#include "Joint.hpp"
+struct MouseJoint : public Joint{
+
 	glm::vec2 target;
 	RigidBody* body;
 	float max_force = 0.0f;
@@ -39,7 +40,7 @@ public:
 		r = glm::vec2{ 0.0f,0.0f };
 		invMass = 0.0f;
 		invI = 0.0f;
-
+		this->type = MOUSE;
 	}
 
 	void setTarget(glm::vec2 target) {
@@ -68,9 +69,6 @@ public:
 		mass = invert(K);
 
 		C = pos1 + r - target;
-		//C *= beta;
-		
-
 	}
 
 	void applyImpulse(const float dt) {
@@ -87,8 +85,6 @@ public:
 		if (mag > maxImpulse) {
 			this->impulse *= maxImpulse / std::sqrtf(mag);
 		}
-
-		//impulse = this->impulse - oldImpulse;
 
 		v1 += invMass * this->impulse;
 		w += invI * cross(r, this->impulse);

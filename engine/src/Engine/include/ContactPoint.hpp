@@ -24,10 +24,10 @@ union FeaturePair
 */
 struct ContactPoint {
 public:
-	glm::vec2 position;
-	glm::vec2 normal;
-	glm::vec2 r1, r2;
-	float separation;
+	glm::vec2 position = glm::vec2{ 0.0f,0.0f };
+	glm::vec2 normal = glm::vec2{ 0.0f,1.0f };
+	glm::vec2 r1 = glm::vec2{ 0.0f, 0.0f }, r2 = glm::vec2{ 0.0f };
+	float separation = 0.0f;
 	float Pn = 0.0f;        // accumulated normal impulse
 	float Pt = 0.0f;        // accumulated tangent impulse
 	float Pnb = 0.0f;       // accumulated normal impulse for position bias
@@ -38,4 +38,6 @@ public:
 
 std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB);
 std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, CircleRigidBody* bodyB);
+std::vector<ContactPoint> Collide(CircleRigidBody* bodyA, CircleRigidBody* bodyB);
+
 #endif

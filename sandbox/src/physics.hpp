@@ -121,7 +121,7 @@ struct Physics {
 			BoxRigidBody* b = new BoxRigidBody(x, size, 0.0f, 0.50f, 0.5f, getRainbow(i), false);
 			mach.addDynamicObject(b);
 			glm::vec2 anchor = hScreenRes + float(i) * gap;
-			Joint * j = new Joint(b1, b,  anchor);
+			RevoluteJoint * j = new RevoluteJoint(b1, b,  anchor);
 			mach.addJoint(j);
 			b1 = b;
 		}

@@ -84,9 +84,10 @@ public:
 		for (size_t i = 0; i < num; i++) {
 			glm::vec2 x = float(i) * gap + hScreenRes + glm::vec2(50, 0);
 			BoxRigidBody* b = new BoxRigidBody(x, size, 0.0f, 0.50f, 0.5f, getRainbow(i), false);
+			std::cout << "Mass: " << b->mass << " Inv Mass: " << b->inv_mass << " Inertia: " << b->inertia << " Inverse Inertia: " << b->inv_inertia <<  " is static: " << b->is_static <<"\n";
 			mach.addDynamicObject(b);
 			glm::vec2 anchor = hScreenRes + float(i) * gap;
-			Joint* j = new Joint(b1, b, anchor);
+			RevoluteJoint* j = new RevoluteJoint(b1, b, anchor);
 			mach.addJoint(j);
 			b1 = b;
 		}

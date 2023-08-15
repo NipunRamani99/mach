@@ -22,6 +22,7 @@ public:
 		boxRigidBody->position = { 970.0f , 1050.0f };
 		boxRigidBody->angle = 0.0f;
 		boxRigidBody->color = { 0.0f,255.0f * 0.92f,0.0f };
+		boxRigidBody->aabb.size = glm::vec2{ 1950.0f, 100.0f };
 		boxRigidBody->is_static = true;
 		boxRigidBody->calculateInertia();
 
@@ -29,25 +30,12 @@ public:
 		boxRigidBody2->size = { 1900.0f, 50.0f };
 		boxRigidBody2->position = { 970.0f , 0.0f };
 		boxRigidBody2->angle = 0.0f;
+		boxRigidBody2->aabb.size = glm::vec2{ 1950.0f, 150.f };
 		boxRigidBody2->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody2->is_static = true;
 		boxRigidBody2->calculateInertia();
 
-		BoxRigidBody* slope1 = new BoxRigidBody();
-		slope1->size = { 800.0f, 50.0f };
-		slope1->position = { 500.0f , 600.0f };
-		slope1->angle = PI / 9.0f;
-		slope1->color = { 0.0f,255.0f * 0.92f,0.0f };
-		slope1->is_static = true;
-		slope1->calculateInertia();
 
-		BoxRigidBody* slope2 = new BoxRigidBody();
-		slope2->size = { 800.0f, 50.0f };
-		slope2->position = { 1200.0f , 350.0f };
-		slope2->angle = -PI / 9.0f;
-		slope2->color = { 0.0f,255.0f * 0.92f,0.0f };
-		slope2->is_static = true;
-		slope2->calculateInertia();
 
 		BoxRigidBody* boxRigidBody4 = new BoxRigidBody();
 		boxRigidBody4->size = { 1920.0f, 50.0f };
@@ -56,6 +44,7 @@ public:
 		boxRigidBody4->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody4->is_static = true;
 		boxRigidBody4->calculateInertia();
+		boxRigidBody4->aabb.size = { 100.0f, 1950.0f };
 
 		BoxRigidBody* boxRigidBody5 = new BoxRigidBody();
 		boxRigidBody5->size = { 1920.0f, 50.0f };
@@ -64,6 +53,7 @@ public:
 		boxRigidBody5->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody5->is_static = true;
 		boxRigidBody5->calculateInertia();
+		boxRigidBody5->aabb.size = { 100.0f, 1970.0f };
 
 		mach.addDynamicObject(boxRigidBody);
 		mach.addDynamicObject(boxRigidBody2);

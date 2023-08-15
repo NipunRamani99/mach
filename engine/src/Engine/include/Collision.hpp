@@ -7,8 +7,7 @@
 #include "BoxRigidBody.hpp"
 #include "CircleRigidBody.hpp"
 #include "ContactPoint.hpp"
-class Collisions {
-public:
+
 	struct CollisionManifold {
 		RigidBody * bodyA;
 		RigidBody * bodyB;
@@ -26,7 +25,10 @@ public:
 			else if (bodyA->type == RigidBody::BOX && bodyB->type == RigidBody::CIRCLE) {
 				contacts = Collide((BoxRigidBody*)bodyA, (CircleRigidBody*)bodyB);
 			}
-			else {
+			else if(bodyA->type == RigidBody::BOX && bodyB->type == RigidBody::BOX) {
+				contacts = Collide((BoxRigidBody*)bodyA, (BoxRigidBody*)bodyB);
+			}
+			else if (bodyA->type == RigidBody::CIRCLE && bodyB->type == RigidBody::CIRCLE) {
 				contacts = Collide((BoxRigidBody*)bodyA, (BoxRigidBody*)bodyB);
 			}
 		}
@@ -123,8 +125,6 @@ public:
 		}
 
 	};
-public:
-	
-};
+
 
 #endif

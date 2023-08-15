@@ -40,5 +40,7 @@ buildTest(BoxRigidBodyTest unit_test/BoxRigidBodyTest.cpp)
 buildTest(CollisionTest unit_test/CollisionTest.cpp)
 buildTest(MathTest unit_test/MathTest.cpp)
 buildTest(JointTest unit_test/JointTest.cpp)
-
+buildTest(CircleRigidBodyTest unit_test/CircleRigidBodyTest.cpp)
+buildTest(AABBTest unit_test/AABBTest.cpp)
+buildTest(MachTest unit_test/MachTest.cpp)
 buildBenchmark(CollisionBenchmark perf_test/CollisionBenchmark.cpp)

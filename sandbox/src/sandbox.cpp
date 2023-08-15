@@ -75,14 +75,15 @@ int main() {
 			renderer.renderRigidBody(window, rigidBodies);
 		}
         for (auto& contactManifold : contactManifolds) {
-            for (Collisions::CollisionManifold & cm : contactManifolds) {
+            for (CollisionManifold & cm : contactManifolds) {
                 for (ContactPoint& c : cm.contacts) {
                     renderer.renderContactPoint(window, c.position);
                 }
             }
         }
         for (Joint* j : joints) {
-            renderer.renderJoint(window, j);
+            if(j->type == Joint::Type::REVOLUTE)
+                renderer.renderJoint(window, (RevoluteJoint*)j);
         }
         ImGui::End();
         ImGui::SFML::Render(window);

@@ -4,6 +4,7 @@
 #include "Math.hpp"
 #include <vector>
 #include "RigidBody.hpp"
+#include <iostream>
 class BoxRigidBody  : public RigidBody {
 public:
 	glm::vec2 size = { 0.0f,0.0f };
@@ -103,8 +104,9 @@ public:
 
 	void calculateInertia() {
 		if (!is_static) {
-			inertia = (mass * (size.x * size.x + size.y * size.y)) / 12.0f;
-			inv_inertia = 1.0f / inertia;
+			float new_inertia = (mass * (size.x * size.x + size.y * size.y)) / 12.0f;
+			this->inertia = new_inertia;
+			this->inv_inertia = 1.0f / (new_inertia);
 			inv_mass = 1.0f / mass;
 		} else {
 			inertia = std::numeric_limits<float>::max();

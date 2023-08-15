@@ -5,11 +5,11 @@ project(MachEngine)
 # enable C++17 features
 if(CMAKE_COMPILER_IS_GNUCXX)
 	message(STATUS "Using GNU C++17")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 endif()
 if(MSVC)
 	message(STATUS "Using MSCV C++17")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
 endif(MSVC)
 
 add_subdirectory(engine)
