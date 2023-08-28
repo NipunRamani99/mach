@@ -34,10 +34,11 @@ public:
 	float massNormal = 0.0f, massTangent = 0.0f;
 	float bias = 0.0f;
 	FeaturePair feature;
+	static std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB);
+	static std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, CircleRigidBody* bodyB);
+	static std::vector<ContactPoint> Collide(CircleRigidBody* bodyA, CircleRigidBody* bodyB);
 };
 
-std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB);
-std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, CircleRigidBody* bodyB);
-std::vector<ContactPoint> Collide(CircleRigidBody* bodyA, CircleRigidBody* bodyB);
+
 
 #endif

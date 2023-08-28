@@ -12,83 +12,128 @@
 #include "include/CircleRigidBody.hpp"
 #include "include/mach.hpp"
 #include "SceneManager.hpp"
-int main() {
-    Renderer renderer;
-    Mach mach;
-    SceneManager sceneManager(mach);
-    sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Mach Sandbox");
-    window.setFramerateLimit(0);
-    sf::Color clearBackground{49, 60, 69};
-    ImGui::SFML::Init(window);
-    float dt = 1 / 60.0f;
-    sf::Clock deltaClock;
-    bool isSpacePressed = false;
-    bool isZPressed = false;
-    bool runSim = false;
-    while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            ImGui::SFML::ProcessEvent(event);
-            sceneManager.processInput(window);
-            if (event.type == sf::Event::Closed) {
-                window.close();
-            }
-            // catch the resize events
-            if (event.type == sf::Event::Resized)
-            {
-                // update the view to the new size of the window
-                sf::FloatRect visibleArea(0.f, 0.f, event.size.width, event.size.height);
-             //   window.setView(sf::View(visibleArea));
-            }
-        }
-        ImGui::SFML::Update(window, deltaClock.restart());
-        ImGui::Begin("Mach Sandbox");
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z) && !isZPressed) {
+
+class Sandbox {
+private:
+	sf::RenderWindow window;
+	Mach mach;
+	SceneManager sceneManager;
+	Renderer renderer;
+	sf::Color clearBackground;
+	float dt;
+	sf::Clock deltaClock;
+	bool isSpacePressed;
+	bool isZPressed;
+	bool runSim;
+	bool renderAABB;
+	bool renderContactPoints;
+	bool renderJoints;
+public:
+	Sandbox() :
+		window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Mach Sandbox"),
+		mach(),
+		sceneManager(mach)
+	{
+		window.setFramerateLimit(0);
+		clearBackground = sf::Color(49, 60, 69);
+		ImGui::SFML::Init(window);
+		dt = 1.0f / 60.0f;
+		isSpacePressed = false;
+		isZPressed = false;
+		runSim = false;
+		renderAABB = false;
+		renderContactPoints = false;
+		renderJoints = false;
+	}
+
+	void go() {
+		sf::Clock deltaClock;
+		while (window.isOpen()) {
+			processEvents();
+			updateImGui();
+			updateGame(dt);
+			render();
+			window.display();
+		}
+		ImGui::SFML::Shutdown();
+	}
+
+private:
+	void processEvents() {
+		sf::Event event;
+		while (window.pollEvent(event)) {
+			ImGui::SFML::ProcessEvent(event);
+			sceneManager.processInput(window);
+			if (event.type == sf::Event::Closed) {
+				window.close();
+			}
+			if (event.type == sf::Event::Resized) {
+				sf::FloatRect visibleArea(0.f, 0.f, event.size.width, event.size.height);
+			}
+		}
+	}
+
+	void updateImGui() {
+		ImGui::SFML::Update(window, deltaClock.restart());
+		ImGui::Begin("Mach Sandbox");
+		// ImGui code for UI elements
+		ImGui::Checkbox("Render AABB", &renderAABB);
+		ImGui::Checkbox("Render Contact Points", &renderContactPoints);
+		ImGui::Checkbox("Render Joints", &renderJoints);
+		ImGui::End();
+		ImGui::SFML::Render(window);
+	}
+
+	void updateGame(float timestep) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z) && !isZPressed) {
 			runSim = !runSim;
 			isZPressed = true;
 		}
-        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
-            isZPressed = false;
-        }
-        if((sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !isSpacePressed )|| runSim ) {
-            mach.update(dt);
-            isSpacePressed = true;
-        }
-        if(!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
+		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
+			isZPressed = false;
+		}
+		if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !isSpacePressed) || runSim) {
+			mach.update(timestep);
+			isSpacePressed = true;
+		}
+		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
 			isSpacePressed = false;
 		}
-        window.clear(clearBackground);
-        auto & contactManifolds = mach.getContactList();
-        auto & rigidBodies = mach.getRigidBodies();
-        auto & joints = mach.getJoints();
-        for (size_t i = 0; i < rigidBodies.size(); i++) {
-            auto& dynamicObject = *rigidBodies[i];
-            ImGui::Separator();
-            std::string title = "Dynamic Object %f#" + std::to_string(i);
-            ImGui::Text(title.c_str(), i);
-            ImGui::Text("Position: %f,%f", dynamicObject.position.x, dynamicObject.position.y);
-            ImGui::Text("Rotation: %f", dynamicObject.angle);
-            ImGui::Text("Linear Velocity: %f %f", dynamicObject.linear_velocity.x, dynamicObject.linear_velocity.y);
-            ImGui::Text("Angular Velocity: %f", dynamicObject.angular_velocity);
-        }
-        for(RigidBody * rigidBodies: rigidBodies) {
+	}
+
+	void render() {
+		window.clear(clearBackground);
+		auto& contactManifolds = mach.getContactList();
+		auto& rigidBodies = mach.getRigidBodies();
+		auto& joints = mach.getJoints();
+		for (RigidBody* rigidBodies : rigidBodies) {
 			renderer.renderRigidBody(window, rigidBodies);
+			if(renderAABB)
+				renderer.renderAABB(window, rigidBodies);
 		}
-        for (auto& contactManifold : contactManifolds) {
-            for (CollisionManifold & cm : contactManifolds) {
-                for (ContactPoint& c : cm.contacts) {
-                    renderer.renderContactPoint(window, c.position);
-                }
-            }
-        }
-        for (Joint* j : joints) {
-            if(j->type == Joint::Type::REVOLUTE)
-                renderer.renderJoint(window, (RevoluteJoint*)j);
-        }
-        ImGui::End();
-        ImGui::SFML::Render(window);
-        window.display();
-    }
-    ImGui::SFML::Shutdown();
-    return 0;
+		if (renderContactPoints) {
+			for (auto& contactManifold : contactManifolds) {
+				for (CollisionManifold& cm : contactManifolds) {
+					for (ContactPoint& c : cm.contacts) {
+						renderer.renderContactPoint(window, c.position);
+					}
+				}
+			}
+		}
+		if (renderJoints) {
+			for (Joint* j : joints) {
+				renderer.renderJoint(window, j);
+			}
+			if (mach.getMouseJoint() != nullptr) {
+				renderer.renderJoint(window, mach.getMouseJoint());
+			}
+		}
+		ImGui::SFML::Render(window);
+	}
+};
+
+int main() {
+	Sandbox sandbox;
+	sandbox.go();
+	return 0;
 }
