@@ -44,6 +44,10 @@ public:
 		return joints;
 	}
 
+	MouseJoint* getMouseJoint() {
+		return mouse_joint;
+	}
+
 	void setMouseJoint(MouseJoint* joint) {
 		this->mouse_joint = joint;
 	}
@@ -64,9 +68,9 @@ public:
 		contactList.clear();
 		collisionPairs.clear();
 		broadPhase();
-		narrowPhase();
 		applyGravity();
 		applyForce(dt);
+		narrowPhase();
 		preStep(dt);
 		for (int i = 0; i < num_iterations; i++) {
 			size_t list_size = contactList.size();
@@ -104,22 +108,27 @@ public:
 
 
 	void broadPhase() {
+		//Compute the AABB for every rigid body
 		for (RigidBody* rigidBody : rigidBodies) {
 			rigidBody->calculateAABB();
 		}
 
 		for (size_t i = 0; i < rigidBodies.size(); i++) {
+			//Skip if rigid body is static
 			if (rigidBodies[i]->is_static)continue;
 			for (size_t j = 0; j < rigidBodies.size(); j++) {
+				//Skip self-overlap test
 				if (i == j) continue;
+				//If the rigid body belongs to the same group, ignore.
 				if (rigidBodies[i]->groupId != -1) {
 					if (rigidBodies[i]->groupId == rigidBodies[j]->groupId) continue;
 				}
 				
+				//Check if bounding box overlaps, sort the index and insert it into a vector of collision pairs.
 				if (rigidBodies[i]->aabb.isOverlapping(rigidBodies[j]->aabb)) {
 					int min = std::min(i, j);
 					int max = std::max(i, j);
-					collisionPairs.insert({ rigidBodies[min], rigidBodies[max] });
+					collisionPairs.insert({ rigidBodies[max], rigidBodies[min] });
 				}
 			}
 		}
@@ -127,14 +136,6 @@ public:
 
 	void narrowPhase() {
 		for (auto [bodyA, bodyB] : collisionPairs) {
-			bool found = false;
-			for (CollisionManifold& manifold : contactList) {
-				if (manifold.bodyA == bodyA && manifold.bodyB == bodyB || manifold.bodyB == bodyA && manifold.bodyA == bodyB) {
-					found = true;
-					break;
-				}
-			}
-			if (found) continue;
 			CollisionManifold collisionManifold(bodyA, bodyB);
 			if (collisionManifold.contacts.size() > 0) {
 				contactList.push_back(collisionManifold);
@@ -152,6 +153,17 @@ public:
 		if (mouse_joint != nullptr) {
 			mouse_joint->initialize(dt);
 		}
+	}
+
+	void clear() {
+		for (Joint* joint : joints) {
+			delete joint;
+		}
+		joints.clear();
+		for (RigidBody* body : rigidBodies) {
+			delete body;
+		}
+		rigidBodies.clear();
 	}
 };
 

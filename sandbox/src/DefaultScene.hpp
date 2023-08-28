@@ -6,8 +6,8 @@
 #include <random>
 class DefaultScene : public Scene {
 private:
-	bool is_button_pressed = false;
-
+	bool is_key_b_pressed = false;
+	bool is_key_c_pressed = false;
 public:
 	DefaultScene(Mach & mach) 
 		:
@@ -78,21 +78,32 @@ public:
 	}
 
 	void processInput(sf::RenderWindow & window) noexcept override {
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !is_button_pressed) {
+		processMouseInput(window);
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::B) && !is_key_b_pressed) {
 			static int i = 0;
-			is_button_pressed = true;
+			is_key_b_pressed = true;
 			BoxRigidBody* dynamicBoxRigidBody = new BoxRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, getRandomSize(), 0.0f, 10.0f, 0.5f, getRainbow(i++));
 			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };
 			dynamicBoxRigidBody->angular_velocity = 0.0f;
 			dynamicBoxRigidBody->is_static = false;
 			mach.addDynamicObject(dynamicBoxRigidBody);
 		}
-		if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-			is_button_pressed = false;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::C) && !is_key_c_pressed) {
+			static int i = 0;
+			is_key_c_pressed = true;
+			
+			CircleRigidBody* dynamicBoxRigidBody = new CircleRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, 10.0f, 0.0f, 10.0f, 0.5f, getRainbow(i++));
+			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };
+			dynamicBoxRigidBody->angular_velocity = 0.0f;
+			dynamicBoxRigidBody->is_static = false;
+			mach.addDynamicObject(dynamicBoxRigidBody);
 		}
-
+		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::B)) {
+			is_key_b_pressed = false;
+		}
+		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C)) {
+			is_key_c_pressed = false;
+		}
 	}
-
-
 };
 #endif // !__DEFAULT_SCENE_HPP__

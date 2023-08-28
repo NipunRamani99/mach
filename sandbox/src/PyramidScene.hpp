@@ -7,8 +7,8 @@
 #include <random>
 class PyramidScene : public Scene {
 private:
-	bool is_button_pressed = false;
-	bool is_key_pressed = false;
+	bool is_key_b_pressed = false;
+	bool is_key_c_pressed = false;
 	static std::random_device rd;
 public:
 	PyramidScene(Mach & mach) 
@@ -34,8 +34,6 @@ public:
 		boxRigidBody2->color = { 0.0f,255.0f * 0.92f,0.0f };
 		boxRigidBody2->is_static = true;
 		boxRigidBody2->calculateInertia();
-
-
 
 		BoxRigidBody* boxRigidBody4 = new BoxRigidBody();
 		boxRigidBody4->size = { 1920.0f, 50.0f };
@@ -81,68 +79,32 @@ public:
 	}
 
 	void processInput(sf::RenderWindow & window) noexcept override {
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !is_button_pressed) {
+		processMouseInput(window);
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::B) && !is_key_b_pressed) {
 			static int i = 0;
-			is_button_pressed = true;
+			is_key_b_pressed = true;
 			BoxRigidBody* dynamicBoxRigidBody = new BoxRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, getRandomSize(), 0.0f, 10.0f, 0.5f, getRainbow(i++));
 			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };
 			dynamicBoxRigidBody->angular_velocity = 0.0f;
 			dynamicBoxRigidBody->is_static = false;
 			mach.addDynamicObject(dynamicBoxRigidBody);
 		}
-		if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-			is_button_pressed = false;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::C) && !is_key_c_pressed) {
+			static int i = 0;
+			is_key_c_pressed = true;
+
+			CircleRigidBody* dynamicBoxRigidBody = new CircleRigidBody({ sf::Mouse::getPosition().x, sf::Mouse::getPosition().y }, 10.0f, 0.0f, 10.0f, 0.5f, getRainbow(i++));
+			dynamicBoxRigidBody->linear_velocity = { 0.0f, 0.0f };
+			dynamicBoxRigidBody->angular_velocity = 0.0f;
+			dynamicBoxRigidBody->is_static = false;
+			mach.addDynamicObject(dynamicBoxRigidBody);
 		}
-	}
-
-	float getRandomAngle() {
-		return (rand() % 360) * PI / 180.0f;
-	}
-
-	float getRandomAngularVelocity() {
-		return -1.0f + 2.0f * (rand() % 2);
-	}
-
-	glm::vec2 getRandomVelocity() {
-		float x = 0.0f;
-		float y = 0.0f;
-		while (x == 0.0f) {
-			x = -10.0f + (rand() % 20);
+		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::B)) {
+			is_key_b_pressed = false;
 		}
-		while (y == 0.0f) {
-			y = -10.0f + (rand() % 20);
+		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C)) {
+			is_key_c_pressed = false;
 		}
-		return glm::vec2(x, y);
-	}
-
-	float getRandomMass() {
-		return 1.0f + 10.0f * (rand() % 10);
-	}
-
-	float getRandomRadius() {
-		return 10.0f + 2.0f * (rand() % 10);
-	}
-
-	glm::vec2 getRandomPosition() {
-
-		float x = 100.0f + (rand() % (int)(SCREEN_WIDTH - 200.0f));
-		float y = 100.0f + (rand() % (int)(SCREEN_HEIGHT - 600.0f));
-		return glm::vec2(x, y);
-	}
-
-	glm::vec2 getRandomSize() {
-		float size = 50.0f + 10.0f * (rand() % 3);
-		return glm::vec2(size, size);
-	}
-
-	glm::vec3 getRainbow(float t)
-	{
-		const float r = sin(t);
-		const float g = sin(t + 0.33f * 2.0f * PI);
-		const float b = sin(t + 0.66f * 2.0f * PI);
-		return { static_cast<uint8_t>(255.0f * r * r),
-				static_cast<uint8_t>(255.0f * g * g),
-				static_cast<uint8_t>(255.0f * b * b) };
 	}
 };
 

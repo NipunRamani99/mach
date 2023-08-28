@@ -6,13 +6,61 @@
 #include <SFML/Graphics.hpp>
 #include <random>
 
-class CarScene : public Scene {
+class Car {
 private:
 	RigidBody* wheel1 = nullptr;
 	RigidBody* wheel2 = nullptr;
 	RigidBody* body = nullptr;
+	
+public:
+	void initialise(glm::vec2 pos, Mach & mach) {
+		unsigned int id = 2;
+		glm::vec2 wheel1_pos = pos + glm::vec2{30,25};
+		glm::vec2 wheel2_pos = pos + glm::vec2{-30, 25};
+		glm::vec2 body_pos = pos;
+		glm::vec2 size = { 70, 70 };
+		glm::vec2 bodySize = { 100, 50 };
+		body = new BoxRigidBody(body_pos, bodySize, 0.0f, 10.0f, 0.5f, getRainbow(6), false);
+		body->linear_velocity = { 0.0f, 0.0f };
+		body->angular_velocity = 0.0f;
+		body->is_static = false;
+		body->groupId = id;
+		wheel1 = new CircleRigidBody(wheel1_pos, 10.0f, 0.0f, 1.0f, 0.5f, getRainbow(5), false);
+		wheel1->linear_velocity = { 0.0f, 0.0f };
+		wheel1->angular_velocity = 0.0f;
+		wheel1->is_static = false;
+		wheel1->groupId = id;
+		mach.addDynamicObject(wheel1);
+		wheel2 = new CircleRigidBody(wheel2_pos, 10.0f, 0.0f, 1.0f, 0.5f, getRainbow(5), false);
+		wheel2->linear_velocity = { 0.0f, 0.0f };
+		wheel2->angular_velocity = 0.0f;
+		wheel2->is_static = false;
+		wheel2->groupId = id;
+		mach.addDynamicObject(wheel2);
+		mach.addDynamicObject(body);
+		RevoluteJoint* j1 = new RevoluteJoint(wheel1, body, wheel1_pos);
+		mach.addJoint(j1);
+		RevoluteJoint* j2 = new RevoluteJoint(wheel2, body, wheel2_pos);
+		mach.addJoint(j2);
+	}
+	void processInput() {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+			wheel1->angular_velocity = wheel1->angular_velocity > 100.0f ? 100.0f : wheel1->angular_velocity + 1.0f;
+			wheel2->angular_velocity = wheel2->angular_velocity > 100.0f ? 100.0f : wheel2->angular_velocity + 1.0f;
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+			wheel1->angular_velocity = wheel1->angular_velocity < -100.0f ? -100.0f : wheel1->angular_velocity - 1.0f;
+			wheel2->angular_velocity = wheel2->angular_velocity < -100.0f ? -100.0f : wheel2->angular_velocity - 1.0f;
+		}
+	}
+};
+
+class CarScene : public Scene {
+private:
+
 	MouseJoint* mouse_joint = nullptr;
 	bool is_lmb_pressed = false;
+	Car* car = nullptr;
 public:
 	CarScene(Mach& mach) : Scene(mach) {}
 
@@ -62,29 +110,7 @@ public:
 		glm::vec2 size = { 70, 70 };
 		glm::vec2 bodySize = { 100, 50 };
 		glm::vec2 bodyPos = { 650, 770 };
-		body = new BoxRigidBody(bodyPos, bodySize, 0.0f, 10.0f, 0.5f, getRainbow(6), false);
-		body->linear_velocity = { 0.0f, 0.0f };
-		body->angular_velocity = 0.0f;
-		body->is_static = false;
-		body->groupId = 1;
-		wheel1 = new CircleRigidBody(pos, 10.0f, 0.0f, 1.0f, 0.5f, getRainbow(5), false); 
-		wheel1->linear_velocity = { 0.0f, 0.0f };
-		wheel1->angular_velocity = 0.0f;
-		wheel1->is_static = false;
-		wheel1->groupId = 1;
-		mach.addDynamicObject(wheel1);
-		wheel2 = new CircleRigidBody(pos2, 10.0f, 0.0f, 1.0f, 0.5f, getRainbow(5), false);
-		wheel2->linear_velocity = { 0.0f, 0.0f };
-		wheel2->angular_velocity = 0.0f;
-		wheel2->is_static = false;
-		wheel2->groupId = 1;
-		mach.addDynamicObject(wheel2);
-		mach.addDynamicObject(body);
-		RevoluteJoint* j1 = new RevoluteJoint(wheel1, body, pos);
-		mach.addJoint(j1);
-		RevoluteJoint* j2 = new RevoluteJoint(wheel2, body, pos2);
-		mach.addJoint(j2);
-
+		
 		BoxRigidBody* slope1 = new BoxRigidBody();
 		slope1->size = { 800.0f, 50.0f };
 		slope1->position = { 500.0f , 600.0f };
@@ -104,44 +130,13 @@ public:
 		slope2->aabb.size = { 800.0f, 400.0f };
 		mach.addDynamicObject(slope1);
 		mach.addDynamicObject(slope2);
-	
+		car = new Car();
+		car->initialise({ 300,300 }, mach);
 	}
+
 	void processInput(sf::RenderWindow& window) noexcept override {
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-			if (mouse_joint == nullptr) {
-				sf::Vector2i p = sf::Mouse::getPosition(window);
-				sf::Vector2f p_coord = window.mapPixelToCoords(p);
-				if (body->checkIfInside({ float(p_coord.x),float(p_coord.y) })) {
-					glm::vec2 target = { float(p_coord.x), float(p_coord.y) };
-					mouse_joint = new MouseJoint(body, target, target);
-					mach.setMouseJoint(mouse_joint);
-					is_lmb_pressed = true;
-				}
-			}
-			else if (mouse_joint && is_lmb_pressed) {
-				sf::Vector2i p = sf::Mouse::getPosition(window);
-				sf::Vector2f p_coord = window.mapPixelToCoords(p);
-				glm::vec2 target = { float(p_coord.x), float(p_coord.y) };
-				mouse_joint->setTarget(target);
-				is_lmb_pressed = true;
-			}
-		}
-		if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && is_lmb_pressed) {
-			mach.removeMouseJoint();
-			is_lmb_pressed = false;
-			if (mouse_joint) {
-				delete mouse_joint;
-				mouse_joint = nullptr;
-			}
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-			wheel1->angular_velocity =  wheel1->angular_velocity > 100.0f? 100.0f:wheel1->angular_velocity+1.0f;
-			wheel2->angular_velocity = wheel2->angular_velocity > 100.0f ? 100.0f : wheel2->angular_velocity + 1.0f;
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-			wheel1->angular_velocity = wheel1->angular_velocity < -100.0f ? -100.0f : wheel1->angular_velocity - 1.0f;
-			wheel2->angular_velocity = wheel2->angular_velocity < -100.0f ? -100.0f : wheel2->angular_velocity - 1.0f;
-		}
+		processMouseInput(window);
+		car->processInput();
 	}
 };
 

@@ -56,6 +56,14 @@ public:
 		window.draw(rectShape);
 	}
 
+	void renderJoint(sf::RenderWindow& window, Joint* j) {
+		if (j->type == Joint::REVOLUTE) {
+			renderJoint(window, (RevoluteJoint*)j);
+		}
+		else if (j->type == Joint::MOUSE) {
+			renderJoint(window, (MouseJoint*)j);
+		}
+	}
 	void renderJoint(sf::RenderWindow& window, RevoluteJoint * j) {
 		RigidBody* b1 = j->body1;
 		RigidBody* b2 = j->body2;
@@ -73,6 +81,21 @@ public:
 		line[0].position = { x1.x, x1.y };
 		line[0].color = sf::Color::White;
 		line[1].position = { x2.x, x2.y };
+		line[1].color = sf::Color::White;
+
+		window.draw(line);
+	}
+
+	void renderJoint(sf::RenderWindow& window, MouseJoint* j) {
+		RigidBody* b1 = j->body;
+		glm::mat2 r1 = rotationMatrix(b1->angle);
+		glm::vec2 x1 = b1->position;
+		glm::vec2 p1 = x1 + j->localCenter * r1;
+		glm::vec2 p2 = j->target;
+		sf::VertexArray line(sf::Lines, 2);
+		line[0].position = { p1.x, p1.y };
+		line[0].color = sf::Color::White;
+		line[1].position = { p2.x, p2.y };
 		line[1].color = sf::Color::White;
 
 		window.draw(line);

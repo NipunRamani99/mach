@@ -46,7 +46,6 @@ public:
 			return;
 		}
 		linear_velocity += ( force * inv_mass )*dt;
-	
 	}
 
 	inline void updateAngularVelocity(float dt) {

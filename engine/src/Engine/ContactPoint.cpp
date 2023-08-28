@@ -192,21 +192,6 @@ std::tuple<bool, float, glm::vec2> circlePolygonIntersection(CircleRigidBody& bo
 			normal = edgeNormal;
 		}
 	}
-	/*int cpIndex = findClosestPointOnPolygon(vertices, bodyA.position);
-	glm::vec2 cp = vertices[cpIndex];
-	axis = glm::normalize(cp - bodyA.position);
-
-	auto [min1, max1] = projectVertices(vertices, axis);
-	auto [min2, max2] = projectCircle(bodyA, axis);
-
-	if (min1 >= max2 || min2 >= max1) {
-		return { false, depth, normal };
-	}
-	axisDepth = std::min(max2 - min1, max1 - min2);
-	if (axisDepth < depth) {
-		depth = axisDepth;
-		normal = axis;
-	}*/
 
 	glm::vec2 direction = glm::normalize(bodyB.position - bodyA.position);
 
@@ -235,26 +220,12 @@ std::pair<float, glm::vec2> pointSegmentDistance(glm::vec2 p, glm::vec2 a, glm::
 
 
 
-std::vector<ContactPoint> Collide(BoxRigidBody* boxBody, CircleRigidBody* circleBody) {
+std::vector<ContactPoint> ContactPoint::Collide(BoxRigidBody* boxBody, CircleRigidBody* circleBody) {
 	ContactPoint contactPoint;
 	auto bodyA = *circleBody;
 	auto bodyB = *boxBody;
 	auto [colliding, separation, normal] = circlePolygonIntersection(bodyA, bodyB);
 	if (colliding) {
-		/*glm::vec2 contactPoint = { 0.0f, 0.0f };
-		glm::vec2 center = bodyA.position;
-		std::vector<glm::vec2> vertices = bodyB.getVertices();
-		float minDistance = std::numeric_limits<float>::max();
-		for (size_t i = 0; i < vertices.size(); i++) {
-			glm::vec2 va = vertices[i];
-			glm::vec2 vb = vertices[(i + 1) % vertices.size()];
-			auto [distance, contact] = pointSegmentDistance(center, va, vb);
-			if (distance < minDistance) {
-				minDistance = distance;
-				contactPoint = contact;
-			}
-		}*/
-
 		contactPoint.normal = normal;
 		contactPoint.separation = -separation;
 		contactPoint.position = circleBody->position + circleBody->radius * normal;
@@ -264,7 +235,7 @@ std::vector<ContactPoint> Collide(BoxRigidBody* boxBody, CircleRigidBody* circle
 	
 }
 
-std::vector<ContactPoint> Collide(CircleRigidBody* bodyA, CircleRigidBody* bodyB) {
+std::vector<ContactPoint> ContactPoint::Collide(CircleRigidBody* bodyA, CircleRigidBody* bodyB) {
 	ContactPoint contactPoint;
 	float radiiSum = bodyA->radius + bodyB->radius;
 	float dist = glm::distance(bodyA->position, bodyB->position);
@@ -279,7 +250,7 @@ std::vector<ContactPoint> Collide(CircleRigidBody* bodyA, CircleRigidBody* bodyB
 	return { contactPoint };
 }
 
-std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
+std::vector<ContactPoint> ContactPoint::Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 
 	//setup
 	glm::vec2 hA = 0.5f * bodyA->size;
@@ -369,7 +340,6 @@ std::vector<ContactPoint> Collide(BoxRigidBody* bodyA, BoxRigidBody* bodyB) {
 		negEdge = EDGE3;
 		posEdge = EDGE1;
 		ComputeIncidentEdge(incidentEdge, hB, pB, rotB, frontNormal);
-
 		break;
 	}
 	case FACE_A_Y: {
