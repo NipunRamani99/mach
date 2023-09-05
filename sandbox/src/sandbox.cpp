@@ -28,6 +28,7 @@ private:
 	bool renderAABB;
 	bool renderContactPoints;
 	bool renderJoints;
+	
 public:
 	Sandbox() :
 		window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Mach Sandbox"),
@@ -80,6 +81,17 @@ private:
 		ImGui::Checkbox("Render AABB", &renderAABB);
 		ImGui::Checkbox("Render Contact Points", &renderContactPoints);
 		ImGui::Checkbox("Render Joints", &renderJoints);
+		sf::Vector2i p = sf::Mouse::getPosition(window);
+		sf::Vector2f p_coord = window.mapPixelToCoords(p);
+		ImGui::Text("Mouse X=%f,Y=%f", p_coord.x, p_coord.y);
+		if (runSim)
+			ImGui::Text("Simulation is running. Press the Z key to pause simulation.");
+		else
+			ImGui::Text("Simulation is paused. Press the Z key to resume simulation.");
+		if (sceneManager.getCurrentSceneNumber() < 3) {
+			ImGui::Text("Press B to spawn a box.");
+			ImGui::Text("Press C to spawn a circle.");
+		}
 		ImGui::End();
 		ImGui::SFML::Render(window);
 	}
