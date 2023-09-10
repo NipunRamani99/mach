@@ -14,7 +14,8 @@ Build and Run Sandbox target to experiment with the physics engine.
 
 ## How To Use
 Currently the physics engine supports basics rigid body dynamics with a circle shaped and box shaped bodies.  
-Press Left Mouse Button to add a box shaped object and C key to add a circle shaped object where the mouse cursor is.
+Press B to add a box shaped object and C key to add a circle shaped object where the mouse cursor is. Press Z to Pause/Resume physics simulation. 
+Press the number keys from 1 to 5 to switch to a different scene.
 
 ## Demonstration
 
