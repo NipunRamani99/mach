@@ -18,4 +18,7 @@ Press Left Mouse Button to add a box shaped object and C key to add a circle sha
 
 ## Demonstration
 
-![](https://github.com/NipunRamani99/mach/blob/main/media/demonstration.gif)
+
+
+https://github.com/NipunRamani99/mach/assets/17413156/94be822f-ceb8-4a33-9d91-c190591d774e
+
